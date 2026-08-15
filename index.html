@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Controle de Amostras</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .gantt-table { border-collapse: collapse; text-align: center; font-size: 12px; }
+    .gantt-table th, .gantt-table td { border: 1px solid #cbd5e1; padding: 6px; min-width: 34px; max-width: 34px; height: 32px; }
+    .gantt-table th.setor-col, .gantt-table td.setor-col { 
+      text-align: left; min-width: 110px; max-width: 110px; font-weight: 600; 
+      background-color: #f8fafc; position: sticky; left: 0; z-index: 10; border-right: 2px solid #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+  <!-- TELA DE LOGIN -->
+  <div id="telaLogin" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100] p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
+      <div class="text-center space-y-2">
+        <span class="text-4xl">🏍️</span>
+        <h1 class="text-2xl font-bold text-gray-800">Controle de Amostras</h1>
+        <p class="text-xs text-gray-500">Digite suas credenciais para acessar o sistema</p>
+      </div>
+
+      <form id="formLogin" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Usuário de Acesso</label>
+          <input type="text" id="login_usuario" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: amostrapan00">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Senha</label>
+          <input type="password" id="login_senha" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="••••••••">
+        </div>
+        <button type="submit" id="btnLogin" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3 rounded-lg transition-all text-sm shadow-md">
+          Entrar no Sistema ➔
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- BARRA DE NAVEGAÇÃO -->
+  <nav id="barraNavegacao" class="hidden bg-black text-white shadow-lg sticky top-0 z-50 border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl">🏍️</span>
+        <span class="font-bold text-lg tracking-wide">Controle de Amostras</span>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <div id="menuAbas" class="flex space-x-1 overflow-x-auto text-sm font-medium">
+          <!-- Abas Dinâmicas por Perfil -->
+        </div>
+
+        <button onclick="fazerLogout()" title="Sair do Sistema" class="ml-4 bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg transition-all font-semibold">
+          🚪 Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main id="conteudoPrincipal" class="hidden max-w-7xl mx-auto p-6">
+
+    <!-- ABA 1: CONSULTA PÚBLICA (APENAS LEITURA) -->
+    <div id="conteudoConsulta" class="space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800">👁️ Consulta Geral de Amostras (Apenas Visualização)</h2>
+            <p class="text-xs text-gray-500">Pesquise histórico, responsáveis, pedido e acompanhamento de datas de qualquer amostra.</p>
+          </div>
+
+          <div class="relative w-full md:w-80">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+            <input type="text" id="inputBuscaConsulta" onkeyup="filtrarConsulta()" placeholder="Buscar por amostra, pedido ou solicitante..." class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 outline-none">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase border-b">
+              <tr>
+                <th class="p-3">Amostra</th>
+                <th class="p-3">Pedido</th>
+                <th class="p-3">Solicitante</th>
+                <th class="p-3">Ficha Técnica</th>
+                <th class="p-3">Obs.</th>
+                <th class="p-3">Onde Está (Status)</th>
+                <th class="p-3">Histórico de Linha do Tempo</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaConsulta" class="divide-y">
+              <!-- Conteúdo Dinâmico -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETORES OPERACIONAIS -->
+    <div id="conteudoSetores" class="hidden space-y-6">
+      <div id="blocoFormulario" class="bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-lg font-bold text-gray-700 mb-4">➕ Cadastrar Nova Amostra (Setor Comercial)</h2>
+        <form id="formAmostra" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Nome da Amostra *</label>
+            <input type="text" id="nome_amostra" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Jaqueta Impermeável">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Número do Pedido (Opcional)</label>
+            <input type="text" id="numero_pedido" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Nº pedido gerado pela markup">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Responsável Comercial *</label>
+            <input type="text" id="vendedor_solicitante" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Anexar Ficha Técnica (PDF/Imagem - Opcional)</label>
+            <input type="file" id="arquivo_ficha" accept="application/pdf,image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Observação Inicial (Opcional)</label>
+            <textarea id="observacao_inicial" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Tecido especial fornecido pelo cliente. Cuidados na costura do zíper."></textarea>
+          </div>
+          <div class="md:col-span-2">
+            <button type="submit" id="btnSalvarAmostra" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition-all text-sm">
+              Criar Amostra em Vendas ➔
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <div>
+            <h2 id="tituloTabela" class="text-lg font-bold text-gray-700">📋 Amostras do Setor</h2>
+            <p id="subtituloTabela" class="text-xs text-gray-400">Acompanhamento do setor selecionado</p>
+          </div>
+
+          <div class="relative w-full md:w-72">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+            <input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="Buscar amostra ou pedido..." class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase border-b">
+              <tr>
+                <th class="p-3">Amostra</th>
+                <th class="p-3">Pedido</th>
+                <th class="p-3">Solicitante</th>
+                <th class="p-3">Ficha Técnica</th>
+                <th class="p-3">Obs.</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Datas do Setor</th>
+                <th class="p-3 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaAmostras" class="divide-y">
+              <!-- Conteúdo Dinâmico -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTEÚDO DA GERÊNCIA -->
+    <div id="conteudoGerencia" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
+          <p class="text-xs font-semibold text-gray-400 uppercase">Total de Amostras</p>
+          <p id="cardTotal" class="text-3xl font-bold text-gray-800 mt-1">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-amber-500">
+          <p class="text-xs font-semibold text-gray-400 uppercase">Em Andamento</p>
+          <p id="cardAndamento" class="text-3xl font-bold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500">
+          <p class="text-xs font-semibold text-gray-400 uppercase">Amostras Concluídas</p>
+          <p id="cardConcluidas" class="text-3xl font-bold text-emerald-600 mt-1">0</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow-md space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800">📊 Gráfico de Gantt de Acúmulo de Dias Úteis</h2>
+            <p class="text-xs text-gray-500">Exibição de acúmulo contínuo de dias por setor (1 dia = 9h úteis, descontando fins de semana).</p>
+          </div>
+
+          <div class="relative w-full md:w-80">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+            <input type="text" id="inputBuscaGerencia" onkeyup="filtrarGanttGerencia()" placeholder="Buscar por amostra, pedido ou solicitante..." class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+        </div>
+
+        <div id="conteudoGanttMatriz" class="space-y-8">
+          <!-- Renderização Dinâmica -->
+        </div>
+      </div>
+    </div>
+
+    <!-- PAINEL MASTER DE GERENCIAMENTO DE USUÁRIOS (APENAS ADMIN) -->
+    <div id="conteudoUsuarios" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-md space-y-6">
+        <h2 class="text-lg font-bold text-gray-800">⚙️ Gerenciador de Usuários e Senhas de Acesso</h2>
+
+        <form id="formNovoUsuario" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Nome do Funcionário *</label>
+            <input type="text" id="usr_nome" required class="w-full p-2 border rounded-lg text-sm" placeholder="Ex: Maria Eduarda Santos">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Usuário de Login *</label>
+            <input type="text" id="usr_usuario" required class="w-full p-2 border rounded-lg text-sm" placeholder="Ex: duda123">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Senha *</label>
+            <input type="text" id="usr_senha" required class="w-full p-2 border rounded-lg text-sm" placeholder="Ex: dudapanta">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Setor / Perfil de Acesso *</label>
+            <select id="usr_setor" required class="w-full p-2 border rounded-lg text-sm bg-white">
+              <option value="Vendas">Vendas</option>
+              <option value="Custos">Custos</option>
+              <option value="Compras">Compras</option>
+              <option value="Modelagem">Modelagem</option>
+              <option value="Produção">Produção</option>
+              <option value="Gerência">Gerência</option>
+              <option value="Admin">Administrador Master</option>
+            </select>
+          </div>
+          <div class="md:col-span-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg text-sm transition-all shadow-sm">
+              ➕ Cadastrar Novo Usuário
+            </button>
+          </div>
+        </form>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase border-b">
+              <tr>
+                <th class="p-3">Nome</th>
+                <th class="p-3">Usuário</th>
+                <th class="p-3">Senha</th>
+                <th class="p-3">Setor</th>
+                <th class="p-3 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaUsuarios" class="divide-y">
+              <!-- Conteúdo Dinâmico -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://mxcvegtkeugiicbektya.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gSAtXgFvOi23ixiE8I_Dbg_fLd8VT8p";
+
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let usuarioLogado = null;
+    let abaAtual = 'consulta';
+    let todasAmostrasGeral = [];
+    let todasAmostrasConsulta = [];
+    let todasAmostrasGerencia = [];
+
+    // TELA DE LOGIN
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const loginUsr = document.getElementById('login_usuario').value.trim();
+      const senhaUsr = document.getElementById('login_senha').value.trim();
+
+      const { data, error } = await _supabase
+        .from('usuarios')
+        .select('*')
+        .eq('usuario', loginUsr)
+        .eq('senha', senhaUsr);
+
+      if (error || !data || data.length === 0) {
+        alert("Usuário ou senha incorretos!");
+      } else {
+        usuarioLogado = data[0];
+        document.getElementById('telaLogin').classList.add('hidden');
+        document.getElementById('barraNavegacao').classList.remove('hidden');
+        document.getElementById('conteudoPrincipal').classList.remove('hidden');
+
+        montarMenuPermissoes();
+        mudarAba('consulta');
+      }
+    });
+
+    function fazerLogout() {
+      usuarioLogado = null;
+      document.getElementById('telaLogin').classList.remove('hidden');
+      document.getElementById('barraNavegacao').classList.add('hidden');
+      document.getElementById('conteudoPrincipal').classList.add('hidden');
+      document.getElementById('formLogin').reset();
+    }
+
+    function montarMenuPermissoes() {
+      const menu = document.getElementById('menuAbas');
+      const setor = usuarioLogado.setor;
+
+      let html = `<button onclick="mudarAba('consulta')" id="btn-consulta" class="aba-btn px-3.5 py-2 rounded-lg transition-all text-cyan-400 bg-gray-900">👁️ Amostras</button>`;
+
+      if (setor === 'Vendas' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('vendas')" id="btn-vendas" class="aba-btn px-3.5 py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300">🏷️ Vendas</button>`;
+      }
+      if (setor === 'Custos' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('custos')" id="btn-custos" class="aba-btn px-3.5 py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300">💰 Custos</button>`;
+      }
+      if (setor === 'Compras' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('compras')" id="btn-compras" class="aba-btn px-3.5 py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300">🛒 Compras</button>`;
+      }
+      if (setor === 'Modelagem' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('modelagem')" id="btn-modelagem" class="aba-btn px-3.5 py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300">📐 Modelagem</button>`;
+      }
+      if (setor === 'Produção' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('producao')" id="btn-producao" class="aba-btn px-3.5 py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300">🚚 Produção</button>`;
+      }
+      if (setor === 'Gerência' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('gerencia')" id="btn-gerencia" class="aba-btn px-3.5 py-2 rounded-lg transition-all hover:bg-gray-900 text-blue-400">📊 Gerência / Gantt</button>`;
+      }
+      if (setor === 'Admin') {
+        html += `<button onclick="mudarAba('usuarios')" id="btn-usuarios" class="aba-btn px-3.5 py-2 rounded-lg transition-all hover:bg-gray-900 text-purple-400">⚙️ Usuários</button>`;
+      }
+
+      menu.innerHTML = html;
+    }
+
+    function mudarAba(aba) {
+      abaAtual = aba;
+      
+      document.querySelectorAll('.aba-btn').forEach(btn => {
+        btn.classList.remove('bg-gray-900', 'text-cyan-400', 'text-emerald-400', 'text-amber-400', 'text-purple-400', 'text-indigo-400', 'text-orange-400', 'text-blue-400');
+        btn.classList.add('text-gray-300');
+      });
+
+      const btnAtivo = document.getElementById(`btn-${aba}`);
+      if (btnAtivo) btnAtivo.classList.add('bg-gray-900');
+
+      document.getElementById('conteudoConsulta').classList.add('hidden');
+      document.getElementById('conteudoSetores').classList.add('hidden');
+      document.getElementById('conteudoGerencia').classList.add('hidden');
+      document.getElementById('conteudoUsuarios').classList.add('hidden');
+
+      if (aba === 'consulta') {
+        document.getElementById('conteudoConsulta').classList.remove('hidden');
+        carregarConsultaPublica();
+      } else if (aba === 'gerencia') {
+        document.getElementById('conteudoGerencia').classList.remove('hidden');
+        carregarGerenciaGantt();
+      } else if (aba === 'usuarios') {
+        document.getElementById('conteudoUsuarios').classList.remove('hidden');
+        carregarListaUsuarios();
+      } else {
+        document.getElementById('conteudoSetores').classList.remove('hidden');
+        if (aba === 'vendas') {
+          document.getElementById('blocoFormulario').classList.remove('hidden');
+          document.getElementById('tituloTabela').innerText = "📋 Acompanhamento Geral de Amostras (Vendas)";
+        } else {
+          document.getElementById('blocoFormulario').classList.add('hidden');
+          document.getElementById('tituloTabela').innerText = `📋 Amostras na Fila de ${aba.toUpperCase()}`;
+        }
+        carregarAmostrasSetor();
+      }
+    }
+
+    // GERENCIADOR DE USUÁRIOS E SENHAS (APENAS ADMIN)
+    document.getElementById('formNovoUsuario').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const novo = {
+        nome: document.getElementById('usr_nome').value.trim(),
+        usuario: document.getElementById('usr_usuario').value.trim(),
+        senha: document.getElementById('usr_senha').value.trim(),
+        setor: document.getElementById('usr_setor').value
+      };
+
+      const { error } = await _supabase.from('usuarios').insert([novo]);
+      if (error) {
+        alert("Erro ao cadastrar: Usuário já existente ou inválido.");
+      } else {
+        alert("Usuário cadastrado com sucesso!");
+        document.getElementById('formNovoUsuario').reset();
+        carregarListaUsuarios();
+      }
+    });
+
+    async function carregarListaUsuarios() {
+      const { data, error } = await _supabase.from('usuarios').select('*').order('criado_em', { ascending: false });
+      if (error || !data) return;
+
+      const tbody = document.getElementById('tabelaUsuarios');
+      tbody.innerHTML = '';
+
+      data.forEach(usr => {
+        const isMaster = (usr.usuario === 'admin');
+        const btnEditar = `<button onclick="editarUsuario('${usr.id}', '${usr.nome}', '${usr.usuario}', '${usr.senha}', '${usr.setor}')" class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded-md hover:bg-amber-200 mr-1">✏️ Editar</button>`;
+        const btnExcluir = isMaster 
+          ? '<span class="text-xs text-gray-400 italic">Master</span>' 
+          : `<button onclick="excluirUsuario('${usr.id}')" class="text-xs bg-red-100 text-red-700 font-bold px-2 py-1 rounded-md hover:bg-red-200">❌ Excluir</button>`;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 font-semibold text-gray-800">${usr.nome}</td>
+            <td class="p-3 font-medium text-blue-600">${usr.usuario}</td>
+            <td class="p-3 text-gray-600 font-mono text-xs">${usr.senha}</td>
+            <td class="p-3"><span class="bg-gray-100 text-gray-800 text-xs px-2.5 py-1 rounded-full font-semibold">${usr.setor}</span></td>
+            <td class="p-3 text-center">${btnEditar}${btnExcluir}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function editarUsuario(id, nomeAtual, usuarioAtual, senhaAtual, setorAtual) {
+      const novoNome = prompt("Nome do Funcionário:", nomeAtual);
+      if (novoNome === null) return;
+
+      const novoUsuario = prompt("Usuário de Login:", usuarioAtual);
+      if (novoUsuario === null) return;
+
+      const novaSenha = prompt("Nova Senha:", senhaAtual);
+      if (novaSenha === null) return;
+
+      const novoSetor = prompt("Setor (Vendas, Custos, Compras, Modelagem, Produção, Gerência, Admin):", setorAtual);
+      if (novoSetor === null) return;
+
+      const { error } = await _supabase.from('usuarios').update({
+        nome: novoNome.trim(),
+        usuario: novoUsuario.trim(),
+        senha: novaSenha.trim(),
+        setor: novoSetor.trim()
+      }).eq('id', id);
+
+      if (error) alert("Erro ao atualizar: " + error.message);
+      else {
+        alert("Dados do usuário atualizados com sucesso!");
+        carregarListaUsuarios();
+      }
+    }
+
+    async function excluirUsuario(id) {
+      if (!confirm("Tem certeza que deseja remover este usuário?")) return;
+      const { error } = await _supabase.from('usuarios').delete().eq('id', id);
+      if (error) alert("Erro ao excluir: " + error.message);
+      else carregarListaUsuarios();
+    }
+
+    // CONSULTA PÚBLICA
+    async function carregarConsultaPublica() {
+      const { data, error } = await _supabase.from('amostras').select('*').order('criado_em', { ascending: false });
+      if (error || !data) return;
+
+      todasAmostrasConsulta = data;
+      renderizarTabelaConsulta(todasAmostrasConsulta);
+    }
+
+    function renderizarTabelaConsulta(lista) {
+      const tbody = document.getElementById('tabelaConsulta');
+      tbody.innerHTML = '';
+
+      if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhuma amostra encontrada.</td></tr>`;
+        return;
+      }
+
+      lista.forEach(item => {
+        const pedTexto = item.numero_pedido ? item.numero_pedido : '<em class="text-gray-400">Sem pedido</em>';
+        const linkFicha = item.ficha_tecnica_url 
+          ? `<a href="${item.ficha_tecnica_url}" target="_blank" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md text-xs font-semibold hover:underline">📄 Ver Ficha</a>` 
+          : '-';
+
+        const temObs = item.observacoes && item.observacoes.trim() !== '';
+        const obsLabel = temObs ? '💬 Obs' : 'Sem Obs';
+        const obsEstilo = temObs ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-gray-100 text-gray-400 font-normal';
+        const btnObs = `<button onclick="verObservacoesSomenteLeitura(\`${item.observacoes || ''}\`)" class="text-xs px-2.5 py-1 rounded-md ${obsEstilo}">${obsLabel}</button>`;
+
+        const vInic = formatarDataCurta(item.vendas_inicio);
+        const vFim = formatarDataCurta(item.vendas_fim);
+        const cInic = formatarDataCurta(item.custos_inicio);
+        const cFim = formatarDataCurta(item.custos_fim);
+        const compInic = formatarDataCurta(item.compras_inicio);
+        const compFim = formatarDataCurta(item.compras_fim);
+        const mInic = formatarDataCurta(item.modelagem_inicio);
+        const mFim = formatarDataCurta(item.modelagem_fim);
+        const pInic = formatarDataCurta(item.producao_inicio);
+        const pFim = formatarDataCurta(item.producao_fim);
+
+        let resumoTimeline = `<div class="text-[11px] leading-relaxed text-gray-700 space-y-0.5">`;
+        if (vInic) resumoTimeline += `<div>🏷️ <b>Vendas:</b> ${vInic} ${vFim ? '➔ ' + vFim : '(Em andamento)'}</div>`;
+        if (cInic) resumoTimeline += `<div>💰 <b>Custos:</b> ${cInic} ${cFim ? '➔ ' + cFim : '(Em andamento)'}</div>`;
+        if (compInic) resumoTimeline += `<div>🛒 <b>Compras:</b> ${compInic} ${compFim ? '➔ ' + compFim : '(Em andamento)'}</div>`;
+        if (mInic) resumoTimeline += `<div>📐 <b>Modelagem:</b> ${mInic} ${mFim ? '➔ ' + mFim : '(Em andamento)'}</div>`;
+        if (pInic) resumoTimeline += `<div>🚚 <b>Produção:</b> ${pInic} ${pFim ? '➔ ' + pFim : '(Em andamento)'}</div>`;
+        if (!vInic && !cInic && !compInic && !mInic && !pInic) resumoTimeline += `<span class="text-gray-400 italic">Nenhum setor iniciado</span>`;
+        resumoTimeline += `</div>`;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 font-semibold text-gray-800">${item.nome_amostra}</td>
+            <td class="p-3">
+              <span class="font-medium text-gray-700">${pedTexto}</span>
+              <button onclick="verHistorico('${item.id}')" title="Ver Histórico de Pedido" class="ml-1 text-blue-500 font-bold">ℹ️</button>
+            </td>
+            <td class="p-3">${item.vendedor_solicitante}</td>
+            <td class="p-3">${linkFicha}</td>
+            <td class="p-3">${btnObs}</td>
+            <td class="p-3"><span class="bg-slate-900 text-white text-xs px-2.5 py-1 rounded-full font-bold">${item.status_atual}</span></td>
+            <td class="p-3">${resumoTimeline}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function verObservacoesSomenteLeitura(obs) {
+      if (!obs || obs.trim() === '') alert("Nenhuma observação cadastrada para esta amostra.");
+      else alert("📜 HISTÓRICO DE OBSERVAÇÕES:\n\n" + obs);
+    }
+
+    function filtrarConsulta() {
+      const termo = document.getElementById('inputBuscaConsulta').value.toLowerCase();
+      const filtrados = todasAmostrasConsulta.filter(item => {
+        const nome = (item.nome_amostra || '').toLowerCase();
+        const pedido = (item.numero_pedido || '').toLowerCase();
+        const solicitante = (item.vendedor_solicitante || '').toLowerCase();
+        return nome.includes(termo) || pedido.includes(termo) || solicitante.includes(termo);
+      });
+      renderizarTabelaConsulta(filtrados);
+    }
+
+    // CADASTRO EM VENDAS
+    document.getElementById('formAmostra').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const btn = document.getElementById('btnSalvarAmostra');
+      btn.disabled = true;
+      btn.innerText = "Salvando amostra...";
+
+      const ped = document.getElementById('numero_pedido').value;
+      const resp = document.getElementById('vendedor_solicitante').value;
+      const obsInicial = document.getElementById('observacao_inicial').value;
+      const fileInput = document.getElementById('arquivo_ficha');
+
+      let urlFicha = null;
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const fileName = `${Date.now()}_${file.name}`;
+
+        const { data: storageData, error: storageError } = await _supabase.storage
+          .from('fichas')
+          .upload(fileName, file);
+
+        if (!storageError) {
+          const { data: publicUrlData } = _supabase.storage.from('fichas').getPublicUrl(fileName);
+          urlFicha = publicUrlData.publicUrl;
+        }
+      }
+
+      let obsFormatada = null;
+      if (obsInicial && obsInicial.trim() !== '') {
+        const dh = new Date().toLocaleString('pt-BR');
+        obsFormatada = `• [${dh} - VENDAS]: ${obsInicial.trim()}`;
+      }
+
+      const novaAmostra = {
+        nome_amostra: document.getElementById('nome_amostra').value,
+        numero_pedido: ped,
+        vendedor_solicitante: resp,
+        ficha_tecnica_url: urlFicha,
+        observacoes: obsFormatada,
+        status_atual: 'Em Vendas',
+        vendas_inicio: new Date().toISOString()
+      };
+
+      const { data, error } = await _supabase.from('amostras').insert([novaAmostra]).select();
+
+      btn.disabled = false;
+      btn.innerText = "Criar Amostra em Vendas ➔";
+
+      if (error) {
+        alert('Erro ao salvar no banco: ' + error.message);
+      } else {
+        if (data && data[0] && ped) {
+          await _supabase.from('historico_pedidos').insert([{
+            amostra_id: data[0].id,
+            pedido_anterior: 'Nenhum',
+            pedido_novo: ped,
+            usuario: resp
+          }]);
+        }
+        alert('Amostra cadastrada com sucesso!');
+        document.getElementById('formAmostra').reset();
+        carregarAmostrasSetor();
+      }
+    });
+
+    // CARREGAR TABELAS OPERACIONAIS
+    async function carregarAmostrasSetor() {
+      let query = _supabase.from('amostras').select('*').order('criado_em', { ascending: false });
+
+      if (abaAtual === 'custos') query = query.in('status_atual', ['Aguardando Custos', 'Em Custos']);
+      else if (abaAtual === 'compras') query = query.in('status_atual', ['Aguardando Compras', 'Em Compras']);
+      else if (abaAtual === 'modelagem') query = query.in('status_atual', ['Aguardando Modelagem', 'Em Modelagem']);
+      else if (abaAtual === 'producao') query = query.in('status_atual', ['Aguardando Produção', 'Em Produção']);
+
+      const { data, error } = await query;
+      if (error || !data) return;
+
+      todasAmostrasGeral = data;
+      renderizarTabelaSetor(todasAmostrasGeral);
+    }
+
+    function formatarDataCurta(dataIso) {
+      if (!dataIso) return null;
+      const d = new Date(dataIso);
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const hora = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${dia}/${mes} ${hora}:${min}`;
+    }
+
+    function renderizarTabelaSetor(lista) {
+      const tbody = document.getElementById('tabelaAmostras');
+      tbody.innerHTML = '';
+
+      if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">Nenhuma amostra encontrada.</td></tr>`;
+        return;
+      }
+
+      lista.forEach(item => {
+        const pedTexto = item.numero_pedido ? item.numero_pedido : '<em class="text-gray-400">Sem pedido</em>';
+        const linkFicha = item.ficha_tecnica_url 
+          ? `<a href="${item.ficha_tecnica_url}" target="_blank" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md text-xs font-semibold hover:underline">📄 Ver Ficha</a>` 
+          : '-';
+
+        const btnLapis = (abaAtual === 'vendas' || usuarioLogado.setor === 'Admin') 
+          ? `<button onclick="editarPedido('${item.id}', '${item.numero_pedido || ''}', '${usuarioLogado.nome}')" title="Editar Pedido" class="ml-1 text-gray-400 hover:text-blue-600">✏️</button>` 
+          : '';
+
+        const temObs = item.observacoes && item.observacoes.trim() !== '';
+        const obsLabel = temObs ? '💬 Obs' : '➕ Obs';
+        const obsEstilo = temObs ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-gray-100 text-gray-600 font-medium hover:bg-gray-200';
+        const btnObs = `<button onclick="gerenciarObservacoes('${item.id}', \`${item.observacoes || ''}\`)" class="text-xs px-2.5 py-1 rounded-md transition-all ${obsEstilo}">${obsLabel}</button>`;
+
+        let dtInicioSetor = null;
+        let dtFimSetor = null;
+
+        if (abaAtual === 'vendas') { dtInicioSetor = item.vendas_inicio; dtFimSetor = item.vendas_fim; }
+        else if (abaAtual === 'custos') { dtInicioSetor = item.custos_inicio; dtFimSetor = item.custos_fim; }
+        else if (abaAtual === 'compras') { dtInicioSetor = item.compras_inicio; dtFimSetor = item.compras_fim; }
+        else if (abaAtual === 'modelagem') { dtInicioSetor = item.modelagem_inicio; dtFimSetor = item.modelagem_fim; }
+        else if (abaAtual === 'producao') { dtInicioSetor = item.producao_inicio; dtFimSetor = item.producao_fim; }
+
+        let celulaDatas = '<span class="text-xs text-gray-400 italic">Pendente</span>';
+        if (dtInicioSetor) {
+          const strInic = formatarDataCurta(dtInicioSetor);
+          if (dtFimSetor) {
+            const strFim = formatarDataCurta(dtFimSetor);
+            celulaDatas = `<div class="text-[11px] leading-tight text-gray-700"><div>▶ <b>Início:</b> ${strInic}</div><div class="text-emerald-700">✓ <b>Fim:</b> ${strFim}</div></div>`;
+          } else {
+            celulaDatas = `<div class="text-[11px] leading-tight text-blue-700 font-semibold">▶ <b>Início:</b> ${strInic}</div>`;
+          }
+        }
+
+        let acaoBtn = '';
+        if (abaAtual === 'vendas') {
+          acaoBtn = (item.status_atual === 'Em Vendas')
+            ? `<button onclick="avancarStatus('${item.id}', 'vendas_fim', 'Aguardando Custos')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg">Concluir Vendas ➔ Passar p/ Custos</button>`
+            : `<span class="text-xs text-gray-400 italic">Em andamento na fábrica</span>`;
+        } else if (abaAtual === 'custos') {
+          acaoBtn = (item.status_atual === 'Aguardando Custos')
+            ? `<button onclick="avancarStatus('${item.id}', 'custos_inicio', 'Em Custos')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-1.5 rounded-lg">▶ Iniciar Custos</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'custos_fim', 'Aguardando Compras')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg">✓ Concluir Custos ➔ Passar p/ Compras</button>`;
+        } else if (abaAtual === 'compras') {
+          acaoBtn = (item.status_atual === 'Aguardando Compras')
+            ? `<button onclick="avancarStatus('${item.id}', 'compras_inicio', 'Em Compras')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1.5 rounded-lg">▶ Iniciar Compras</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'compras_fim', 'Aguardando Modelagem')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg">✓ Concluir Compras ➔ Passar p/ Modelagem</button>`;
+        } else if (abaAtual === 'modelagem') {
+          acaoBtn = (item.status_atual === 'Aguardando Modelagem')
+            ? `<button onclick="avancarStatus('${item.id}', 'modelagem_inicio', 'Em Modelagem')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg">▶ Iniciar Modelagem</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'modelagem_fim', 'Aguardando Produção')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg">✓ Concluir Modelagem ➔ Passar p/ Produção</button>`;
+        } else if (abaAtual === 'producao') {
+          acaoBtn = (item.status_atual === 'Aguardando Produção')
+            ? `<button onclick="avancarStatus('${item.id}', 'producao_inicio', 'Em Produção')" class="bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-1.5 rounded-lg">▶ Iniciar Produção</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'producao_fim', 'Concluído')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg">🎉 Finalizar Amostra</button>`;
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 font-semibold text-gray-800">${item.nome_amostra}</td>
+            <td class="p-3">
+              <span class="font-medium text-gray-700">${pedTexto}</span>
+              ${btnLapis}
+              <button onclick="verHistorico('${item.id}')" title="Ver Histórico" class="ml-1 text-blue-500 font-bold">ℹ️</button>
+            </td>
+            <td class="p-3">${item.vendedor_solicitante}</td>
+            <td class="p-3">${linkFicha}</td>
+            <td class="p-3">${btnObs}</td>
+            <td class="p-3"><span class="bg-gray-100 text-gray-800 text-xs px-2.5 py-1 rounded-full font-semibold">${item.status_atual}</span></td>
+            <td class="p-3">${celulaDatas}</td>
+            <td class="p-3 text-center">${acaoBtn}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function gerenciarObservacoes(id, obsAtual) {
+      let cabecalho = "📜 HISTÓRICO DE OBSERVAÇÕES:\n";
+      if (obsAtual && obsAtual.trim() !== '') {
+        cabecalho += obsAtual + "\n\n";
+      } else {
+        cabecalho += "Nenhuma observação registrada até o momento.\n\n";
+      }
+
+      cabecalho += `----------------------------------------\n[Setor: ${usuarioLogado.setor.toUpperCase()} - Usuário: ${usuarioLogado.nome}]\nDigite a nova observação (ou deixe em branco se quiser apenas ler):`;
+
+      const novaAnotacao = prompt(cabecalho);
+      if (novaAnotacao === null || novaAnotacao.trim() === '') return;
+
+      const dh = new Date().toLocaleString('pt-BR');
+      const entradaNova = `• [${dh} - ${usuarioLogado.nome} (${usuarioLogado.setor})]: ${novaAnotacao.trim()}`;
+      
+      const textoFinal = obsAtual && obsAtual.trim() !== '' 
+        ? `${obsAtual}\n${entradaNova}` 
+        : entradaNova;
+
+      const { error } = await _supabase
+        .from('amostras')
+        .update({ observacoes: textoFinal })
+        .eq('id', id);
+
+      if (error) {
+        alert("Erro ao salvar observação: " + error.message);
+      } else {
+        alert("Nova observação registrada no histórico!");
+        carregarAmostrasSetor();
+      }
+    }
+
+    async function avancarStatus(id, campoData, novoStatus) {
+      const updateData = { status_atual: novoStatus };
+      if (campoData) updateData[campoData] = new Date().toISOString();
+
+      const { error } = await _supabase.from('amostras').update(updateData).eq('id', id);
+      if (error) alert("Erro: " + error.message);
+      else carregarAmostrasSetor();
+    }
+
+    function filtrarTabela() {
+      const termo = document.getElementById('inputBusca').value.toLowerCase();
+      const filtrados = todasAmostrasGeral.filter(item => {
+        const nome = (item.nome_amostra || '').toLowerCase();
+        const pedido = (item.numero_pedido || '').toLowerCase();
+        const solicitante = (item.vendedor_solicitante || '').toLowerCase();
+        return nome.includes(termo) || pedido.includes(termo) || solicitante.includes(termo);
+      });
+      renderizarTabelaSetor(filtrados);
+    }
+
+    async function editarPedido(id, pedidoAtual, solicitante) {
+      const novoPedido = prompt("Digite o número do Pedido:", pedidoAtual);
+      if (novoPedido === null || novoPedido === pedidoAtual) return;
+
+      const { error } = await _supabase.from('amostras').update({ numero_pedido: novoPedido }).eq('id', id);
+      if (error) { alert("Erro: " + error.message); return; }
+
+      await _supabase.from('historico_pedidos').insert([{
+        amostra_id: id,
+        pedido_anterior: pedidoAtual || 'Nenhum',
+        pedido_novo: novoPedido || 'Nenhum',
+        usuario: usuarioLogado ? usuarioLogado.nome : solicitante
+      }]);
+
+      alert("Pedido atualizado!");
+      carregarAmostrasSetor();
+    }
+
+    async function verHistorico(amostraId) {
+      const { data, error } = await _supabase.from('historico_pedidos').select('*').eq('amostra_id', amostraId).order('criado_em', { ascending: false });
+      if (error || !data || data.length === 0) { alert("Nenhum histórico registrado."); return; }
+
+      let msg = "📜 HISTÓRICO DE ALTERAÇÕES DE PEDIDO:\n\n";
+      data.forEach(h => {
+        const d = new Date(h.criado_em).toLocaleString('pt-BR');
+        msg += `• [${d}] por ${h.usuario}:\n  De: "${h.pedido_anterior}" ➔ Para: "${h.pedido_novo}"\n\n`;
+      });
+      alert(msg);
+    }
+
+    function calcularTempoUtilMs(inicio, fim) {
+      if (!inicio || !fim) return 0;
+      let dStart = new Date(inicio);
+      let dEnd = new Date(fim);
+
+      if (dStart >= dEnd) return 0;
+
+      let tempoTotalMs = 0;
+      let cursor = new Date(dStart);
+
+      while (cursor < dEnd) {
+        let proximoPasso = new Date(cursor.getTime() + 60 * 60 * 1000);
+        if (proximoPasso > dEnd) proximoPasso = dEnd;
+
+        const diaSemana = cursor.getDay();
+        if (diaSemana !== 0 && diaSemana !== 6) {
+          tempoTotalMs += (proximoPasso - cursor);
+        }
+
+        cursor = proximoPasso;
+      }
+
+      return tempoTotalMs;
+    }
+
+    function formatarLeadTime(ms) {
+      if (!ms || ms <= 0) return '0h';
+
+      const msPorHora = 1000 * 60 * 60;
+      const msPorDiaJornada = msPorHora * 9;
+
+      const diasUteis = Math.floor(ms / msPorDiaJornada);
+      const horasRestantes = Math.floor((ms % msPorDiaJornada) / msPorHora);
+      const minutosRestantes = Math.floor((ms % msPorHora) / (1000 * 60));
+
+      let resultado = [];
+      if (diasUteis > 0) resultado.push(`${diasUteis} d`);
+      if (horasRestantes > 0) resultado.push(`${horasRestantes} h`);
+      if (diasUteis === 0 && horasRestantes === 0 && minutosRestantes > 0) resultado.push(`${minutosRestantes} min`);
+
+      return resultado.join(', ') || '0h';
+    }
+
+    // GERÊNCIA E GANTT
+    async function carregarGerenciaGantt() {
+      const { data, error } = await _supabase.from('amostras').select('*').order('criado_em', { ascending: false });
+      if (error || !data) return;
+
+      todasAmostrasGerencia = data;
+      renderizarPainelGerencia(todasAmostrasGerencia);
+    }
+
+    function filtrarGanttGerencia() {
+      const termo = document.getElementById('inputBuscaGerencia').value.toLowerCase();
+      const filtrados = todasAmostrasGerencia.filter(item => {
+        const nome = (item.nome_amostra || '').toLowerCase();
+        const pedido = (item.numero_pedido || '').toLowerCase();
+        const solicitante = (item.vendedor_solicitante || '').toLowerCase();
+        return nome.includes(termo) || pedido.includes(termo) || solicitante.includes(termo);
+      });
+      renderizarPainelGerencia(filtrados);
+    }
+
+    function renderizarPainelGerencia(lista) {
+      document.getElementById('cardTotal').innerText = lista.length;
+      document.getElementById('cardAndamento').innerText = lista.filter(i => i.status_atual !== 'Concluído').length;
+      document.getElementById('cardConcluidas').innerText = lista.filter(i => i.status_atual === 'Concluído').length;
+
+      const container = document.getElementById('conteudoGanttMatriz');
+      container.innerHTML = '';
+
+      if (lista.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-6">Nenhuma amostra encontrada.</p>`;
+        return;
+      }
+
+      lista.forEach(amostra => {
+        const msPorJornada9h = 1000 * 60 * 60 * 9;
+        const tCriado = new Date(amostra.vendas_inicio || amostra.criado_em);
+        const agora = new Date();
+
+        const setoresConfig = [
+          { nome: 'Vendas', chegou: amostra.vendas_inicio || amostra.criado_em, iniciou: amostra.vendas_inicio, fim: amostra.vendas_fim, cor: '#60a5fa' },
+          { nome: 'Custos', chegou: amostra.vendas_fim, iniciou: amostra.custos_inicio, fim: amostra.custos_fim, cor: '#f59e0b' },
+          { nome: 'Compras', chegou: amostra.custos_fim, iniciou: amostra.compras_inicio, fim: amostra.compras_fim, cor: '#a855f7' },
+          { nome: 'Modelagem', chegou: amostra.compras_fim, iniciou: amostra.modelagem_inicio, fim: amostra.modelagem_fim, cor: '#6366f1' },
+          { nome: 'Produção', chegou: amostra.modelagem_fim, iniciou: amostra.producao_inicio, fim: amostra.producao_fim, cor: '#10b981' }
+        ];
+
+        let intervalosGantt = [];
+        let maxDiaAcumulado = 1;
+
+        setoresConfig.forEach(setor => {
+          if (!setor.chegou) {
+            intervalosGantt.push({ nome: setor.nome, colEnd: 0, cor: setor.cor, ativo: false });
+          } else {
+            const dtFim = setor.fim ? new Date(setor.fim) : agora;
+            const tempoDecorridoAteFim = calcularTempoUtilMs(tCriado, dtFim);
+            
+            let diaFim = Math.max(1, Math.ceil(tempoDecorridoAteFim / msPorJornada9h));
+            if (diaFim > maxDiaAcumulado) maxDiaAcumulado = diaFim;
+
+            intervalosGantt.push({ nome: setor.nome, colEnd: diaFim, cor: setor.cor, ativo: true });
+          }
+        });
+
+        const totalColunasTabela = Math.max(7, maxDiaAcumulado);
+
+        let headerDias = `<th class="setor-col">DIAS</th>`;
+        for (let d = 1; d <= totalColunasTabela; d++) {
+          headerDias += `<th class="bg-gray-50 text-gray-700 font-bold">${d}</th>`;
+        }
+
+        let linhasSetoresHTML = '';
+        let linhasTabelaTempos = '';
+
+        setoresConfig.forEach((setor, index) => {
+          const infoGantt = intervalosGantt[index];
+
+          linhasSetoresHTML += `<tr><td class="setor-col">${setor.nome}</td>`;
+          for (let d = 1; d <= totalColunasTabela; d++) {
+            let celulaEstilo = '';
+            if (infoGantt.ativo && d <= infoGantt.colEnd) {
+              celulaEstilo = `style="background-color: ${infoGantt.cor};"`;
+            }
+            linhasSetoresHTML += `<td ${celulaEstilo}></td>`;
+          }
+          linhasSetoresHTML += `</tr>`;
+
+          const dtChegou = setor.chegou ? new Date(setor.chegou) : null;
+          const dtIniciou = setor.iniciou ? new Date(setor.iniciou) : null;
+          const dtFim = setor.fim ? new Date(setor.fim) : null;
+
+          let tempoFilaMs = 0;
+          let tempoExecucaoMs = 0;
+          let statusSetorTexto = 'Pendente';
+
+          if (dtChegou) {
+            if (dtIniciou) {
+              tempoFilaMs = calcularTempoUtilMs(dtChegou, dtIniciou);
+              if (dtFim) {
+                tempoExecucaoMs = calcularTempoUtilMs(dtIniciou, dtFim);
+                statusSetorTexto = 'Concluído';
+              } else {
+                tempoExecucaoMs = calcularTempoUtilMs(dtIniciou, agora);
+                statusSetorTexto = 'Em Execução...';
+              }
+            } else {
+              tempoFilaMs = calcularTempoUtilMs(dtChegou, agora);
+              statusSetorTexto = 'Aguardando Fila';
+            }
+          }
+
+          const totalSetorMs = tempoFilaMs + tempoExecucaoMs;
+
+          linhasTabelaTempos += `
+            <tr class="text-xs text-gray-700 hover:bg-gray-50">
+              <td class="p-2 font-semibold border-b">${setor.nome}</td>
+              <td class="p-2 border-b text-amber-600 font-medium">${dtChegou ? formatarLeadTime(tempoFilaMs) : '-'}</td>
+              <td class="p-2 border-b text-blue-600 font-medium">${dtIniciou ? formatarLeadTime(tempoExecucaoMs) : '-'}</td>
+              <td class="p-2 border-b font-bold text-gray-800">${dtChegou ? formatarLeadTime(totalSetorMs) : '-'}</td>
+              <td class="p-2 border-b"><span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 font-semibold">${statusSetorTexto}</span></td>
+            </tr>
+          `;
+        });
+
+        const obsFormatadaGerencia = amostra.observacoes 
+          ? `<div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
+               <p class="font-bold mb-1">📜 Histórico de Observações da Amostra:</p>
+               <pre class="font-sans whitespace-pre-wrap">${amostra.observacoes}</pre>
+             </div>` 
+          : '';
+
+        container.innerHTML += `
+          <div class="border rounded-xl p-5 bg-white shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b pb-3">
+              <div>
+                <h3 class="font-bold text-gray-800 text-lg uppercase tracking-wide">
+                  AMOSTRA: ${amostra.nome_amostra} 
+                  <span class="text-sm font-normal text-gray-500">(${amostra.numero_pedido ? 'Pedido: ' + amostra.numero_pedido : 'Sem Pedido'})</span>
+                </h3>
+                <p class="text-xs text-gray-400">Solicitante: ${amostra.vendedor_solicitante} | Criado em: ${new Date(tCriado).toLocaleDateString('pt-BR')}</p>
+              </div>
+              <span class="text-xs px-3 py-1 rounded-full font-bold bg-slate-900 text-white">${amostra.status_atual}</span>
+            </div>
+
+            <div class="overflow-x-auto border rounded-lg">
+              <table class="gantt-table">
+                <thead><tr>${headerDias}</tr></thead>
+                <tbody>${linhasSetoresHTML}</tbody>
+              </table>
+            </div>
+
+            ${obsFormatadaGerencia}
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                ⏱️ Detalhamento de Lead Time em Dias Úteis de 9h e Horas (Desconta Sáb/Dom)
+              </h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="text-gray-500 uppercase border-b bg-white">
+                    <tr>
+                      <th class="p-2">Setor</th>
+                      <th class="p-2 text-amber-700">⏳ Tempo em Fila (Aguardando)</th>
+                      <th class="p-2 text-blue-700">⚙️ Tempo em Produção (Execução)</th>
+                      <th class="p-2">⏱️ Total no Setor</th>
+                      <th class="p-2">Situação</th>
+                    </tr>
+                  </thead>
+                  <tbody>${linhasTabelaTempos}</tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
