@@ -12,10 +12,9 @@
     .gantt-table { border-collapse: collapse; text-align: center; font-size: 12px; }
     .gantt-table th, .gantt-table td { border: 1px solid #cbd5e1; padding: 6px; min-width: 34px; max-width: 34px; height: 32px; }
     .gantt-table th.setor-col, .gantt-table td.setor-col { 
-      text-align: left; min-width: 110px; max-width: 110px; font-weight: 600; 
+      text-align: left; min-width: 130px; max-width: 130px; font-weight: 600; 
       background-color: #f8fafc; position: sticky; left: 0; z-index: 10; border-right: 2px solid #94a3b8;
     }
-    /* Oculta a barra de rolagem no celular mantendo a funcionalidade de arrastar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -49,30 +48,26 @@
   <!-- BARRA DE NAVEGAÇÃO ADAPTÁVEL -->
   <nav id="barraNavegacao" class="hidden bg-black text-white shadow-lg sticky top-0 z-50 border-b border-gray-800 w-full">
     <div class="max-w-7xl mx-auto px-2 sm:px-6 flex justify-between items-center h-16 w-full">
-      
-      <!-- Título: Visível no Computador, Oculto no Celular para dar espaço -->
       <div class="hidden md:flex items-center space-x-2 shrink-0">
         <span class="font-bold text-lg tracking-wide whitespace-nowrap">Controle de Amostras</span>
       </div>
 
-      <!-- Menu de Abas -->
       <div class="flex items-center justify-between w-full md:w-auto space-x-2 overflow-hidden">
         <div id="menuAbas" class="flex space-x-1.5 overflow-x-auto no-scrollbar py-1 w-full md:w-auto items-center">
-          <!-- Abas Dinâmicas por Perfil -->
+          <!-- Abas Dinâmicas -->
         </div>
 
         <button onclick="fazerLogout()" title="Sair do Sistema" class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 sm:px-3 py-1.5 rounded-lg transition-all font-semibold ml-1">
           🚪 Sair
         </button>
       </div>
-
     </div>
   </nav>
 
   <!-- CONTEÚDO PRINCIPAL -->
   <main id="conteudoPrincipal" class="hidden max-w-7xl mx-auto p-3 sm:p-6 w-full overflow-x-hidden flex-grow">
 
-    <!-- ABA 1: CONSULTA PÚBLICA (APENAS LEITURA) -->
+    <!-- ABA 1: CONSULTA PÚBLICA -->
     <div id="conteudoConsulta" class="space-y-6 w-full">
       <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md space-y-4 w-full overflow-hidden">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -87,7 +82,6 @@
           </div>
         </div>
 
-        <!-- VISUALIZAÇÃO COMPUTADOR (TABELA) -->
         <div class="hidden md:block overflow-x-auto w-full border rounded-lg">
           <table class="w-full text-left text-sm text-gray-600">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase border-b">
@@ -101,16 +95,11 @@
                 <th class="p-3">Histórico de Linha do Tempo</th>
               </tr>
             </thead>
-            <tbody id="tabelaConsulta" class="divide-y">
-              <!-- Conteúdo Dinâmico -->
-            </tbody>
+            <tbody id="tabelaConsulta" class="divide-y"></tbody>
           </table>
         </div>
 
-        <!-- VISUALIZAÇÃO CELULAR (CARDS) -->
-        <div id="cardsConsultaMobile" class="md:hidden space-y-3">
-          <!-- Conteúdo Dinâmico Celular -->
-        </div>
+        <div id="cardsConsultaMobile" class="md:hidden space-y-3"></div>
       </div>
     </div>
 
@@ -129,15 +118,19 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Responsável Comercial *</label>
-            <input type="text" id="vendedor_solicitante" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="">
+            <input type="text" id="vendedor_solicitante" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Maria Vendas">
           </div>
           <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Estimativa de Conclusão de Vendas (Dias) *</label>
+            <input type="number" id="estimativa_vendas" min="1" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: 3">
+          </div>
+          <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-gray-600 mb-1">Anexar Ficha Técnica (PDF/Imagem - Opcional)</label>
             <input type="file" id="arquivo_ficha" accept="application/pdf,image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
           </div>
           <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-gray-600 mb-1">Observação Inicial (Opcional)</label>
-            <textarea id="observacao_inicial" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Tecido especial fornecido pelo cliente. Cuidados na costura do zíper."></textarea>
+            <textarea id="observacao_inicial" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Cuidados na costura do zíper."></textarea>
           </div>
           <div class="md:col-span-2">
             <button type="submit" id="btnSalvarAmostra" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition-all text-sm">
@@ -160,7 +153,6 @@
           </div>
         </div>
 
-        <!-- VISUALIZAÇÃO COMPUTADOR (TABELA) -->
         <div class="hidden md:block overflow-x-auto w-full border rounded-lg">
           <table class="w-full text-left text-sm text-gray-600">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase border-b">
@@ -171,20 +163,15 @@
                 <th class="p-3">Ficha Técnica</th>
                 <th class="p-3">Obs.</th>
                 <th class="p-3">Status</th>
-                <th class="p-3">Datas do Setor</th>
+                <th class="p-3">Datas e Estimativa</th>
                 <th class="p-3 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody id="tabelaAmostras" class="divide-y">
-              <!-- Conteúdo Dinâmico -->
-            </tbody>
+            <tbody id="tabelaAmostras" class="divide-y"></tbody>
           </table>
         </div>
 
-        <!-- VISUALIZAÇÃO CELULAR (CARDS) -->
-        <div id="cardsSetorMobile" class="md:hidden space-y-3">
-          <!-- Conteúdo Dinâmico Celular -->
-        </div>
+        <div id="cardsSetorMobile" class="md:hidden space-y-3"></div>
       </div>
     </div>
 
@@ -208,8 +195,8 @@
       <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md space-y-6 w-full overflow-hidden">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 class="text-lg font-bold text-gray-800">📊 Gráfico de Gantt de Acúmulo de Dias Úteis</h2>
-            <p class="text-xs text-gray-500">Exibição de acúmulo contínuo de dias por setor (1 dia = 9h úteis, descontando fins de semana).</p>
+            <h2 class="text-lg font-bold text-gray-800">📊 Gráfico de Gantt e Rendimento por Setor</h2>
+            <p class="text-xs text-gray-500">Fluxo: Vendas ➔ Modelagem ➔ Compras ➔ Produção ➔ Custos. (Verde = Dentro do Prazo / Vermelho = Excedido).</p>
           </div>
 
           <div class="relative w-full md:w-80">
@@ -218,13 +205,11 @@
           </div>
         </div>
 
-        <div id="conteudoGanttMatriz" class="space-y-8 w-full">
-          <!-- Renderização Dinâmica -->
-        </div>
+        <div id="conteudoGanttMatriz" class="space-y-8 w-full"></div>
       </div>
     </div>
 
-    <!-- PAINEL MASTER DE GERENCIAMENTO DE USUÁRIOS (APENAS ADMIN) -->
+    <!-- PAINEL MASTER DE USUÁRIOS -->
     <div id="conteudoUsuarios" class="hidden space-y-6 w-full">
       <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md space-y-6 w-full overflow-hidden">
         <h2 class="text-lg font-bold text-gray-800">⚙️ Gerenciador de Usuários e Senhas de Acesso</h2>
@@ -246,10 +231,10 @@
             <label class="block text-xs font-semibold text-gray-600 mb-1">Setor / Perfil de Acesso *</label>
             <select id="usr_setor" required class="w-full p-2 border rounded-lg text-sm bg-white">
               <option value="Vendas">Vendas</option>
-              <option value="Custos">Custos</option>
-              <option value="Compras">Compras</option>
               <option value="Modelagem">Modelagem</option>
+              <option value="Compras">Compras</option>
               <option value="Produção">Produção</option>
+              <option value="Custos">Custos</option>
               <option value="Gerência">Gerência</option>
               <option value="Admin">Administrador Master</option>
             </select>
@@ -272,9 +257,7 @@
                 <th class="p-3 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody id="tabelaUsuarios" class="divide-y">
-              <!-- Conteúdo Dinâmico -->
-            </tbody>
+            <tbody id="tabelaUsuarios" class="divide-y"></tbody>
           </table>
         </div>
       </div>
@@ -282,7 +265,6 @@
 
   </main>
 
-  <!-- RODAPÉ DE CRÉDITOS (OPÇÃO 1) -->
   <footer id="rodapeCreditos" class="hidden text-center py-4 text-xs text-gray-500 border-t border-gray-200 mt-auto bg-white/80 backdrop-blur-sm w-full">
     <p>Sistema desenvolvido por Maria Eduarda Santos | Sistema de Controle de Amostras</p>
   </footer>
@@ -299,7 +281,7 @@
     let todasAmostrasConsulta = [];
     let todasAmostrasGerencia = [];
 
-    // TELA DE LOGIN
+    // LOGIN
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
       const loginUsr = document.getElementById('login_usuario').value.trim();
@@ -343,17 +325,17 @@
       if (setor === 'Vendas' || setor === 'Admin') {
         html += `<button onclick="mudarAba('vendas')" id="btn-vendas" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300 whitespace-nowrap text-xs sm:text-sm">🏷️ Vendas</button>`;
       }
-      if (setor === 'Custos' || setor === 'Admin') {
-        html += `<button onclick="mudarAba('custos')" id="btn-custos" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300 whitespace-nowrap text-xs sm:text-sm">💰 Custos</button>`;
+      if (setor === 'Modelagem' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('modelagem')" id="btn-modelagem" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300 whitespace-nowrap text-xs sm:text-sm">📐 Modelagem</button>`;
       }
       if (setor === 'Compras' || setor === 'Admin') {
         html += `<button onclick="mudarAba('compras')" id="btn-compras" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300 whitespace-nowrap text-xs sm:text-sm">🛒 Compras</button>`;
       }
-      if (setor === 'Modelagem' || setor === 'Admin') {
-        html += `<button onclick="mudarAba('modelagem')" id="btn-modelagem" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300 whitespace-nowrap text-xs sm:text-sm">📐 Modelagem</button>`;
-      }
       if (setor === 'Produção' || setor === 'Admin') {
         html += `<button onclick="mudarAba('producao')" id="btn-producao" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300 whitespace-nowrap text-xs sm:text-sm">🚚 Produção</button>`;
+      }
+      if (setor === 'Custos' || setor === 'Admin') {
+        html += `<button onclick="mudarAba('custos')" id="btn-custos" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-gray-300 whitespace-nowrap text-xs sm:text-sm">💰 Custos</button>`;
       }
       if (setor === 'Gerência' || setor === 'Admin') {
         html += `<button onclick="mudarAba('gerencia')" id="btn-gerencia" class="aba-btn px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all hover:bg-gray-900 text-blue-400 whitespace-nowrap text-xs sm:text-sm">📊 Gerência / Gantt</button>`;
@@ -369,7 +351,7 @@
       abaAtual = aba;
       
       document.querySelectorAll('.aba-btn').forEach(btn => {
-        btn.classList.remove('bg-gray-900', 'text-cyan-400', 'text-emerald-400', 'text-amber-400', 'text-purple-400', 'text-indigo-400', 'text-orange-400', 'text-blue-400');
+        btn.classList.remove('bg-gray-900', 'text-cyan-400');
         btn.classList.add('text-gray-300');
       });
 
@@ -403,7 +385,7 @@
       }
     }
 
-    // GERENCIADOR DE USUÁRIOS E SENHAS (APENAS ADMIN)
+    // USUÁRIOS
     document.getElementById('formNovoUsuario').addEventListener('submit', async (e) => {
       e.preventDefault();
       const novo = {
@@ -459,7 +441,7 @@
       const novaSenha = prompt("Nova Senha:", senhaAtual);
       if (novaSenha === null) return;
 
-      const novoSetor = prompt("Setor (Vendas, Custos, Compras, Modelagem, Produção, Gerência, Admin):", setorAtual);
+      const novoSetor = prompt("Setor (Vendas, Modelagem, Compras, Produção, Custos, Gerência, Admin):", setorAtual);
       if (novoSetor === null) return;
 
       const { error } = await _supabase.from('usuarios').update({
@@ -470,10 +452,7 @@
       }).eq('id', id);
 
       if (error) alert("Erro ao atualizar: " + error.message);
-      else {
-        alert("Dados do usuário atualizados com sucesso!");
-        carregarListaUsuarios();
-      }
+      else carregarListaUsuarios();
     }
 
     async function excluirUsuario(id) {
@@ -517,25 +496,24 @@
 
         const vInic = formatarDataCurta(item.vendas_inicio);
         const vFim = formatarDataCurta(item.vendas_fim);
-        const cInic = formatarDataCurta(item.custos_inicio);
-        const cFim = formatarDataCurta(item.custos_fim);
-        const compInic = formatarDataCurta(item.compras_inicio);
-        const compFim = formatarDataCurta(item.compras_fim);
         const mInic = formatarDataCurta(item.modelagem_inicio);
         const mFim = formatarDataCurta(item.modelagem_fim);
+        const compInic = formatarDataCurta(item.compras_inicio);
+        const compFim = formatarDataCurta(item.compras_fim);
         const pInic = formatarDataCurta(item.producao_inicio);
         const pFim = formatarDataCurta(item.producao_fim);
+        const cInic = formatarDataCurta(item.custos_inicio);
+        const cFim = formatarDataCurta(item.custos_fim);
 
         let resumoTimeline = `<div class="text-[11px] leading-relaxed text-gray-700 space-y-0.5">`;
         if (vInic) resumoTimeline += `<div>🏷️ <b>Vendas:</b> ${vInic} ${vFim ? '➔ ' + vFim : '(Em andamento)'}</div>`;
-        if (cInic) resumoTimeline += `<div>💰 <b>Custos:</b> ${cInic} ${cFim ? '➔ ' + cFim : '(Em andamento)'}</div>`;
-        if (compInic) resumoTimeline += `<div>🛒 <b>Compras:</b> ${compInic} ${compFim ? '➔ ' + compFim : '(Em andamento)'}</div>`;
         if (mInic) resumoTimeline += `<div>📐 <b>Modelagem:</b> ${mInic} ${mFim ? '➔ ' + mFim : '(Em andamento)'}</div>`;
+        if (compInic) resumoTimeline += `<div>🛒 <b>Compras:</b> ${compInic} ${compFim ? '➔ ' + compFim : '(Em andamento)'}</div>`;
         if (pInic) resumoTimeline += `<div>🚚 <b>Produção:</b> ${pInic} ${pFim ? '➔ ' + pFim : '(Em andamento)'}</div>`;
-        if (!vInic && !cInic && !compInic && !mInic && !pInic) resumoTimeline += `<span class="text-gray-400 italic">Nenhum setor iniciado</span>`;
+        if (cInic) resumoTimeline += `<div>💰 <b>Custos:</b> ${cInic} ${cFim ? '➔ ' + cFim : '(Em andamento)'}</div>`;
+        if (!vInic && !mInic && !compInic && !pInic && !cInic) resumoTimeline += `<span class="text-gray-400 italic">Nenhum setor iniciado</span>`;
         resumoTimeline += `</div>`;
 
-        // 1. RENDERIZAÇÃO NA TABELA (DESKTOP)
         tbody.innerHTML += `
           <tr class="hover:bg-gray-50">
             <td class="p-3 font-semibold text-gray-800">${item.nome_amostra}</td>
@@ -551,7 +529,6 @@
           </tr>
         `;
 
-        // 2. RENDERIZAÇÃO EM CARDS (MOBILE)
         cardsMobile.innerHTML += `
           <div class="border rounded-xl p-4 bg-gray-50 shadow-sm space-y-3">
             <div class="flex justify-between items-start border-b pb-2">
@@ -614,6 +591,7 @@
 
       const ped = document.getElementById('numero_pedido').value;
       const resp = document.getElementById('vendedor_solicitante').value;
+      const estVendas = parseInt(document.getElementById('estimativa_vendas').value) || 1;
       const obsInicial = document.getElementById('observacao_inicial').value;
       const fileInput = document.getElementById('arquivo_ficha');
 
@@ -645,6 +623,7 @@
         vendedor_solicitante: resp,
         ficha_tecnica_url: urlFicha,
         observacoes: obsFormatada,
+        estimativa_vendas: estVendas,
         status_atual: 'Em Vendas',
         vendas_inicio: new Date().toISOString()
       };
@@ -671,14 +650,14 @@
       }
     });
 
-    // CARREGAR TABELAS OPERACIONAIS
+    // SETORES OPERACIONAIS
     async function carregarAmostrasSetor() {
       let query = _supabase.from('amostras').select('*').order('criado_em', { ascending: false });
 
-      if (abaAtual === 'custos') query = query.in('status_atual', ['Aguardando Custos', 'Em Custos']);
+      if (abaAtual === 'modelagem') query = query.in('status_atual', ['Aguardando Modelagem', 'Em Modelagem']);
       else if (abaAtual === 'compras') query = query.in('status_atual', ['Aguardando Compras', 'Em Compras']);
-      else if (abaAtual === 'modelagem') query = query.in('status_atual', ['Aguardando Modelagem', 'Em Modelagem']);
       else if (abaAtual === 'producao') query = query.in('status_atual', ['Aguardando Produção', 'Em Produção']);
+      else if (abaAtual === 'custos') query = query.in('status_atual', ['Aguardando Custos', 'Em Custos']);
 
       const { data, error } = await query;
       if (error || !data) return;
@@ -726,48 +705,49 @@
 
         let dtInicioSetor = null;
         let dtFimSetor = null;
+        let estSetor = 0;
 
-        if (abaAtual === 'vendas') { dtInicioSetor = item.vendas_inicio; dtFimSetor = item.vendas_fim; }
-        else if (abaAtual === 'custos') { dtInicioSetor = item.custos_inicio; dtFimSetor = item.custos_fim; }
-        else if (abaAtual === 'compras') { dtInicioSetor = item.compras_inicio; dtFimSetor = item.compras_fim; }
-        else if (abaAtual === 'modelagem') { dtInicioSetor = item.modelagem_inicio; dtFimSetor = item.modelagem_fim; }
-        else if (abaAtual === 'producao') { dtInicioSetor = item.producao_inicio; dtFimSetor = item.producao_fim; }
+        if (abaAtual === 'vendas') { dtInicioSetor = item.vendas_inicio; dtFimSetor = item.vendas_fim; estSetor = item.estimativa_vendas; }
+        else if (abaAtual === 'modelagem') { dtInicioSetor = item.modelagem_inicio; dtFimSetor = item.modelagem_fim; estSetor = item.estimativa_modelagem; }
+        else if (abaAtual === 'compras') { dtInicioSetor = item.compras_inicio; dtFimSetor = item.compras_fim; estSetor = item.estimativa_compras; }
+        else if (abaAtual === 'producao') { dtInicioSetor = item.producao_inicio; dtFimSetor = item.producao_fim; estSetor = item.estimativa_producao; }
+        else if (abaAtual === 'custos') { dtInicioSetor = item.custos_inicio; dtFimSetor = item.custos_fim; estSetor = item.estimativa_custos; }
 
         let celulaDatas = '<span class="text-xs text-gray-400 italic">Pendente</span>';
         if (dtInicioSetor) {
           const strInic = formatarDataCurta(dtInicioSetor);
+          const estTxt = estSetor ? `<div class="text-gray-500 font-semibold">🎯 <b>Estimativa:</b> ${estSetor} d</div>` : '';
           if (dtFimSetor) {
             const strFim = formatarDataCurta(dtFimSetor);
-            celulaDatas = `<div class="text-[11px] leading-tight text-gray-700"><div>▶ <b>Início:</b> ${strInic}</div><div class="text-emerald-700">✓ <b>Fim:</b> ${strFim}</div></div>`;
+            celulaDatas = `<div class="text-[11px] leading-tight text-gray-700"><div>▶ <b>Início:</b> ${strInic}</div><div class="text-emerald-700">✓ <b>Fim:</b> ${strFim}</div>${estTxt}</div>`;
           } else {
-            celulaDatas = `<div class="text-[11px] leading-tight text-blue-700 font-semibold">▶ <b>Início:</b> ${strInic}</div>`;
+            celulaDatas = `<div class="text-[11px] leading-tight text-blue-700 font-semibold">▶ <b>Início:</b> ${strInic}${estTxt}</div>`;
           }
         }
 
         let acaoBtn = '';
         if (abaAtual === 'vendas') {
           acaoBtn = (item.status_atual === 'Em Vendas')
-            ? `<button onclick="avancarStatus('${item.id}', 'vendas_fim', 'Aguardando Custos')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">Concluir Vendas ➔ Passar p/ Custos</button>`
+            ? `<button onclick="avancarStatus('${item.id}', 'vendas_fim', 'Aguardando Modelagem')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">Concluir Vendas ➔ Passar p/ Modelagem</button>`
             : `<span class="text-xs text-gray-400 italic">Em andamento na fábrica</span>`;
-        } else if (abaAtual === 'custos') {
-          acaoBtn = (item.status_atual === 'Aguardando Custos')
-            ? `<button onclick="avancarStatus('${item.id}', 'custos_inicio', 'Em Custos')" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Custos</button>`
-            : `<button onclick="avancarStatus('${item.id}', 'custos_fim', 'Aguardando Compras')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">✓ Concluir Custos ➔ Passar p/ Compras</button>`;
-        } else if (abaAtual === 'compras') {
-          acaoBtn = (item.status_atual === 'Aguardando Compras')
-            ? `<button onclick="avancarStatus('${item.id}', 'compras_inicio', 'Em Compras')" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Compras</button>`
-            : `<button onclick="avancarStatus('${item.id}', 'compras_fim', 'Aguardando Modelagem')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">✓ Concluir Compras ➔ Passar p/ Modelagem</button>`;
         } else if (abaAtual === 'modelagem') {
           acaoBtn = (item.status_atual === 'Aguardando Modelagem')
-            ? `<button onclick="avancarStatus('${item.id}', 'modelagem_inicio', 'Em Modelagem')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Modelagem</button>`
-            : `<button onclick="avancarStatus('${item.id}', 'modelagem_fim', 'Aguardando Produção')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">✓ Concluir Modelagem ➔ Passar p/ Produção</button>`;
+            ? `<button onclick="iniciarEtapaComEstimativa('${item.id}', 'modelagem_inicio', 'estimativa_modelagem', 'Em Modelagem')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Modelagem</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'modelagem_fim', 'Aguardando Compras')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">✓ Concluir Modelagem ➔ Passar p/ Compras</button>`;
+        } else if (abaAtual === 'compras') {
+          acaoBtn = (item.status_atual === 'Aguardando Compras')
+            ? `<button onclick="iniciarEtapaComEstimativa('${item.id}', 'compras_inicio', 'estimativa_compras', 'Em Compras')" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Compras</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'compras_fim', 'Aguardando Produção')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">✓ Concluir Compras ➔ Passar p/ Produção</button>`;
         } else if (abaAtual === 'producao') {
           acaoBtn = (item.status_atual === 'Aguardando Produção')
-            ? `<button onclick="avancarStatus('${item.id}', 'producao_inicio', 'Em Produção')" class="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Produção</button>`
-            : `<button onclick="avancarStatus('${item.id}', 'producao_fim', 'Concluído')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">🎉 Finalizar Amostra</button>`;
+            ? `<button onclick="iniciarEtapaComEstimativa('${item.id}', 'producao_inicio', 'estimativa_producao', 'Em Produção')" class="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Produção</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'producao_fim', 'Aguardando Custos')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">✓ Concluir Produção ➔ Passar p/ Custos</button>`;
+        } else if (abaAtual === 'custos') {
+          acaoBtn = (item.status_atual === 'Aguardando Custos')
+            ? `<button onclick="iniciarEtapaComEstimativa('${item.id}', 'custos_inicio', 'estimativa_custos', 'Em Custos')" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">▶ Iniciar Custos</button>`
+            : `<button onclick="avancarStatus('${item.id}', 'custos_fim', 'Concluído')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm">🎉 Finalizar Amostra</button>`;
         }
 
-        // 1. RENDERIZAÇÃO NA TABELA (DESKTOP)
         tbody.innerHTML += `
           <tr class="hover:bg-gray-50">
             <td class="p-3 font-semibold text-gray-800">${item.nome_amostra}</td>
@@ -785,7 +765,6 @@
           </tr>
         `;
 
-        // 2. RENDERIZAÇÃO EM CARDS (MOBILE)
         cardsMobile.innerHTML += `
           <div class="border rounded-xl p-4 bg-gray-50 shadow-sm space-y-3">
             <div class="flex justify-between items-start border-b pb-2">
@@ -825,6 +804,27 @@
       });
     }
 
+    async function iniciarEtapaComEstimativa(id, campoInicio, campoEstimativa, novoStatus) {
+      const input = prompt("Informe a ESTIMATIVA DE CONCLUSÃO (em dias úteis de 9h):", "3");
+      if (input === null) return;
+      
+      const dias = parseInt(input.trim());
+      if (isNaN(dias) || dias <= 0) {
+        alert("Por favor, digite um número de dias válido maior que zero.");
+        return;
+      }
+
+      const updateData = {
+        status_atual: novoStatus,
+        [campoInicio]: new Date().toISOString(),
+        [campoEstimativa]: dias
+      };
+
+      const { error } = await _supabase.from('amostras').update(updateData).eq('id', id);
+      if (error) alert("Erro ao iniciar: " + error.message);
+      else carregarAmostrasSetor();
+    }
+
     async function gerenciarObservacoes(id, obsAtual) {
       let cabecalho = "📜 HISTÓRICO DE OBSERVAÇÕES:\n";
       if (obsAtual && obsAtual.trim() !== '') {
@@ -850,10 +850,9 @@
         .update({ observacoes: textoFinal })
         .eq('id', id);
 
-      if (error) {
-        alert("Erro ao salvar observação: " + error.message);
-      } else {
-        alert("Nova observação registrada no histórico!");
+      if (error) alert("Erro ao salvar observação: " + error.message);
+      else {
+        alert("Nova observação registrada!");
         carregarAmostrasSetor();
       }
     }
@@ -990,31 +989,60 @@
         const agora = new Date();
 
         const setoresConfig = [
-          { nome: 'Vendas', chegou: amostra.vendas_inicio || amostra.criado_em, iniciou: amostra.vendas_inicio, fim: amostra.vendas_fim, cor: '#60a5fa' },
-          { nome: 'Custos', chegou: amostra.vendas_fim, iniciou: amostra.custos_inicio, fim: amostra.custos_fim, cor: '#f59e0b' },
-          { nome: 'Compras', chegou: amostra.custos_fim, iniciou: amostra.compras_inicio, fim: amostra.compras_fim, cor: '#a855f7' },
-          { nome: 'Modelagem', chegou: amostra.compras_fim, iniciou: amostra.modelagem_inicio, fim: amostra.modelagem_fim, cor: '#6366f1' },
-          { nome: 'Produção', chegou: amostra.modelagem_fim, iniciou: amostra.producao_inicio, fim: amostra.producao_fim, cor: '#10b981' }
+          { key: 'vendas', nome: 'Vendas', iniciou: amostra.vendas_inicio, fim: amostra.vendas_fim, est: amostra.estimativa_vendas || 0 },
+          { key: 'modelagem', nome: 'Modelagem', iniciou: amostra.modelagem_inicio, fim: amostra.modelagem_fim, est: amostra.estimativa_modelagem || 0 },
+          { key: 'compras', nome: 'Compras', iniciou: amostra.compras_inicio, fim: amostra.compras_fim, est: amostra.estimativa_compras || 0 },
+          { key: 'producao', nome: 'Produção', iniciou: amostra.producao_inicio, fim: amostra.producao_fim, est: amostra.estimativa_producao || 0 },
+          { key: 'custos', nome: 'Custos', iniciou: amostra.custos_inicio, fim: amostra.custos_fim, est: amostra.estimativa_custos || 0 }
         ];
 
-        let intervalosGantt = [];
-        let maxDiaAcumulado = 1;
+        let maxDiaMatriz = 1;
+        let infoGanttSetores = [];
 
         setoresConfig.forEach(setor => {
-          if (!setor.chegou) {
-            intervalosGantt.push({ nome: setor.nome, colEnd: 0, cor: setor.cor, ativo: false });
+          if (!setor.iniciou) {
+            infoGanttSetores.push({
+              nome: setor.nome,
+              ativo: false,
+              diaInicio: 0,
+              diaFimReal: 0,
+              estDias: setor.est,
+              diasReais: 0,
+              rendimento: '-'
+            });
           } else {
-            const dtFim = setor.fim ? new Date(setor.fim) : agora;
-            const tempoDecorridoAteFim = calcularTempoUtilMs(tCriado, dtFim);
-            
-            let diaFim = Math.max(1, Math.ceil(tempoDecorridoAteFim / msPorJornada9h));
-            if (diaFim > maxDiaAcumulado) maxDiaAcumulado = diaFim;
+            const dtStart = new Date(setor.iniciou);
+            const dtEnd = setor.fim ? new Date(setor.fim) : agora;
 
-            intervalosGantt.push({ nome: setor.nome, colEnd: diaFim, cor: setor.cor, ativo: true });
+            const msDesdeInicioGeral = calcularTempoUtilMs(tCriado, dtStart);
+            const msExecSetor = calcularTempoUtilMs(dtStart, dtEnd);
+
+            let colStart = Math.floor(msDesdeInicioGeral / msPorJornada9h) + 1;
+            let diasReaisExec = Math.max(1, Math.ceil(msExecSetor / msPorJornada9h));
+            let colEnd = colStart + diasReaisExec - 1;
+
+            if (colEnd > maxDiaMatriz) maxDiaMatriz = colEnd;
+
+            let rend = '-';
+            if (setor.est > 0) {
+              let pct = Math.round((setor.est / diasReaisExec) * 100);
+              if (pct > 100) pct = 100;
+              rend = `${pct}%`;
+            }
+
+            infoGanttSetores.push({
+              nome: setor.nome,
+              ativo: true,
+              diaInicio: colStart,
+              diaFimReal: colEnd,
+              estDias: setor.est,
+              diasReais: diasReaisExec,
+              rendimento: rend
+            });
           }
         });
 
-        const totalColunasTabela = Math.max(7, maxDiaAcumulado);
+        const totalColunasTabela = Math.max(18, maxDiaMatriz + 2);
 
         let headerDias = `<th class="setor-col">DIAS</th>`;
         for (let d = 1; d <= totalColunasTabela; d++) {
@@ -1024,52 +1052,34 @@
         let linhasSetoresHTML = '';
         let linhasTabelaTempos = '';
 
-        setoresConfig.forEach((setor, index) => {
-          const infoGantt = intervalosGantt[index];
-
-          linhasSetoresHTML += `<tr><td class="setor-col">${setor.nome}</td>`;
+        infoGanttSetores.forEach((info, idx) => {
+          linhasSetoresHTML += `<tr><td class="setor-col flex justify-between items-center pr-2"><span>${info.nome}</span> <span class="text-[10px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-bold" title="Rendimento do setor">${info.rendimento}</span></td>`;
+          
           for (let d = 1; d <= totalColunasTabela; d++) {
             let celulaEstilo = '';
-            if (infoGantt.ativo && d <= infoGantt.colEnd) {
-              celulaEstilo = `style="background-color: ${infoGantt.cor};"`;
+            if (info.ativo && d >= info.diaInicio && d <= info.diaFimReal) {
+              const posicaoRelativaDia = (d - info.diaInicio) + 1;
+              if (info.estDias > 0 && posicaoRelativaDia > info.estDias) {
+                celulaEstilo = `style="background-color: #ef4444;" title="Excedido (Vermelho)"`;
+              } else {
+                celulaEstilo = `style="background-color: #22c55e;" title="No prazo (Verde)"`;
+              }
             }
             linhasSetoresHTML += `<td ${celulaEstilo}></td>`;
           }
           linhasSetoresHTML += `</tr>`;
 
-          const dtChegou = setor.chegou ? new Date(setor.chegou) : null;
-          const dtIniciou = setor.iniciou ? new Date(setor.iniciou) : null;
-          const dtFim = setor.fim ? new Date(setor.fim) : null;
-
-          let tempoFilaMs = 0;
-          let tempoExecucaoMs = 0;
-          let statusSetorTexto = 'Pendente';
-
-          if (dtChegou) {
-            if (dtIniciou) {
-              tempoFilaMs = calcularTempoUtilMs(dtChegou, dtIniciou);
-              if (dtFim) {
-                tempoExecucaoMs = calcularTempoUtilMs(dtIniciou, dtFim);
-                statusSetorTexto = 'Concluído';
-              } else {
-                tempoExecucaoMs = calcularTempoUtilMs(dtIniciou, agora);
-                statusSetorTexto = 'Em Execução...';
-              }
-            } else {
-              tempoFilaMs = calcularTempoUtilMs(dtChegou, agora);
-              statusSetorTexto = 'Aguardando Fila';
-            }
-          }
-
-          const totalSetorMs = tempoFilaMs + tempoExecucaoMs;
+          const orig = setoresConfig[idx];
+          const dtInic = orig.iniciou ? formatarDataCurta(orig.iniciou) : '-';
+          const dtFim = orig.fim ? formatarDataCurta(orig.fim) : (orig.iniciou ? 'Em andamento' : '-');
 
           linhasTabelaTempos += `
             <tr class="text-xs text-gray-700 hover:bg-gray-50">
-              <td class="p-2 font-semibold border-b">${setor.nome}</td>
-              <td class="p-2 border-b text-amber-600 font-medium">${dtChegou ? formatarLeadTime(tempoFilaMs) : '-'}</td>
-              <td class="p-2 border-b text-blue-600 font-medium">${dtIniciou ? formatarLeadTime(tempoExecucaoMs) : '-'}</td>
-              <td class="p-2 border-b font-bold text-gray-800">${dtChegou ? formatarLeadTime(totalSetorMs) : '-'}</td>
-              <td class="p-2 border-b"><span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 font-semibold">${statusSetorTexto}</span></td>
+              <td class="p-2 font-semibold border-b">${info.nome}</td>
+              <td class="p-2 border-b text-gray-600">${dtInic} ➔ ${dtFim}</td>
+              <td class="p-2 border-b text-amber-600 font-medium">${info.estDias ? info.estDias + ' dias' : '-'}</td>
+              <td class="p-2 border-b text-blue-600 font-medium">${info.ativo ? info.diasReais + ' dia(s)' : '-'}</td>
+              <td class="p-2 border-b font-bold text-emerald-600">${info.rendimento}</td>
             </tr>
           `;
         });
@@ -1104,18 +1114,18 @@
             ${obsFormatadaGerencia}
 
             <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2 w-full overflow-hidden">
-              <h4 id="tituloDetalhamentoLeadTime" class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                ⏱️ Detalhamento de Lead Time em Dias Úteis de 9h e Horas (Desconta Sáb/Dom)
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                ⏱️ Resumo de Rendimento e Estimativas da Amostra
               </h4>
               <div class="overflow-x-auto w-full">
                 <table class="w-full text-left text-xs min-w-[500px]">
                   <thead class="text-gray-500 uppercase border-b bg-white">
                     <tr>
                       <th class="p-2">Setor</th>
-                      <th class="p-2 text-amber-700">⏳ Tempo em Fila</th>
-                      <th class="p-2 text-blue-700">⚙️ Tempo em Execução</th>
-                      <th class="p-2">⏱️ Total no Setor</th>
-                      <th class="p-2">Situação</th>
+                      <th class="p-2">Período Real</th>
+                      <th class="p-2 text-amber-700">🎯 Estimativa</th>
+                      <th class="p-2 text-blue-700">⚙️ Dias Gastos</th>
+                      <th class="p-2 text-emerald-700">📈 Rendimento</th>
                     </tr>
                   </thead>
                   <tbody>${linhasTabelaTempos}</tbody>
