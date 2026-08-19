@@ -21,27 +21,36 @@
 </head>
 <body class="bg-gray-100 min-h-screen font-sans overflow-x-hidden w-full flex flex-col justify-between">
 
-  <!-- TELA DE LOGIN PERSONALIZADA -->
-  <div id="telaLogin" class="fixed inset-0 flex items-center justify-center z-[100] p-4" style="background-color: #61bb46;">
-    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
-      <div class="text-center space-y-2">
-        <h1 class="text-2xl font-bold" style="color: #326b24;">Controle de Amostras</h1>
-        <p class="text-xs text-gray-500">Digite suas credenciais para acessar o sistema</p>
+  <!-- TELA DE LOGIN PERSONALIZADA COM FUNDO VERDE ESCURO -->
+  <div id="telaLogin" class="fixed inset-0 flex flex-col items-center justify-center z-[100] p-4" style="background-color: #326b24;">
+    <div class="w-full max-w-md flex flex-col items-center space-y-4">
+      
+      <!-- LOGO PANTANEIRO NA TELA DE LOGIN -->
+      <img src="https://mxcvegtkeugiicbektya.supabase.co/storage/v1/object/public/fichas/logo_header_white.png" 
+           alt="Logo Pantaneiro" class="h-10 sm:h-14 w-auto object-contain mb-2 drop-shadow-md">
+
+      <!-- CARD DE LOGIN -->
+      <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full space-y-6">
+        <div class="text-center space-y-2">
+          <h1 class="text-2xl font-bold" style="color: #326b24;">Controle de Amostras</h1>
+          <p class="text-xs text-gray-500">Digite suas credenciais para acessar o sistema</p>
+        </div>
+
+        <form id="formLogin" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Usuário de Acesso</label>
+            <input type="text" id="login_usuario" required class="w-full p-3 border rounded-lg focus:ring-2 outline-none text-sm transition-all" style="border-color: #cbd5e1;" placeholder="Ex: josevendas">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Senha</label>
+            <input type="password" id="login_senha" required class="w-full p-3 border rounded-lg focus:ring-2 outline-none text-sm transition-all" style="border-color: #cbd5e1;" placeholder="••••••••">
+          </div>
+          <button type="submit" id="btnLogin" class="w-full text-white font-bold py-3 rounded-lg transition-all text-sm shadow-md hover:opacity-90" style="background-color: #326b24;">
+            Entrar no Sistema ➔
+          </button>
+        </form>
       </div>
 
-      <form id="formLogin" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Usuário de Acesso</label>
-          <input type="text" id="login_usuario" required class="w-full p-3 border rounded-lg focus:ring-2 outline-none text-sm transition-all" style="border-color: #cbd5e1;" placeholder="Ex: josevendas">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Senha</label>
-          <input type="password" id="login_senha" required class="w-full p-3 border rounded-lg focus:ring-2 outline-none text-sm transition-all" style="border-color: #cbd5e1;" placeholder="••••••••">
-        </div>
-        <button type="submit" id="btnLogin" class="w-full text-white font-bold py-3 rounded-lg transition-all text-sm shadow-md hover:opacity-90" style="background-color: #326b24;">
-          Entrar no Sistema ➔
-        </button>
-      </form>
     </div>
   </div>
 
@@ -518,7 +527,7 @@
         if (compInic) resumoTimeline += `<div>🛒 <b>Compras:</b> ${compInic} ${compFim ? '➔ ' + compFim : '(Em andamento)'}</div>`;
         if (pInic) resumoTimeline += `<div>🚚 <b>Produção:</b> ${pInic} ${pFim ? '➔ ' + pFim : '(Em andamento)'}</div>`;
         if (cInic) resumoTimeline += `<div>💰 <b>Custos:</b> ${cInic} ${cFim ? '➔ ' + cFim : '(Em andamento)'}</div>`;
-        if (!vInic && !mInic && !compInic && !pInic && !cInic) resumoTimeline += `<span class="text-gray-400 italic">Nenhum setor iniciado</span>`;
+        if (!vInic && !mInic && !compInic && !pInic && !cInic) resumoTimeline += `<span class="text-gray-400 italic">Nenhum setor initiated</span>`;
         resumoTimeline += `</div>`;
 
         tbody.innerHTML += `
@@ -1239,7 +1248,7 @@
             <!-- VISUALIZAÇÃO COMPUTADOR (TABELA DETALHADA) -->
             <div class="hidden md:block bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2 w-full overflow-hidden">
               <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                ⏱️ Resumo de Performance de Amostras por Setor
+                ⏱️ Resumo de Performance da Amostra por Setor
               </h4>
               <div class="overflow-x-auto w-full">
                 <table class="w-full text-left text-xs min-w-[500px]">
@@ -1251,7 +1260,7 @@
                       <th class="p-2 text-orange-700">⏳ Tempo em Fila</th>
                       <th class="p-2 text-blue-700">⚙️ Tempo em Execução</th>
                       <th class="p-2 text-slate-800">⏱️ Total no Setor</th>
-                      <th class="p-2 text-emerald-700">📈 Performance Total</th>
+                      <th class="p-2 text-emerald-700">📈 Performance</th>
                     </tr>
                   </thead>
                   <tbody>${linhasTabelaTempos}</tbody>
