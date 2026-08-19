@@ -21,25 +21,25 @@
 </head>
 <body class="bg-gray-100 min-h-screen font-sans overflow-x-hidden w-full flex flex-col justify-between">
 
-  <!-- TELA DE LOGIN -->
-  <div id="telaLogin" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100] p-4">
+  <!-- TELA DE LOGIN PERSONALIZADA -->
+  <div id="telaLogin" class="fixed inset-0 flex items-center justify-center z-[100] p-4" style="background-color: #61bb46;">
     <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
       <div class="text-center space-y-2">
-        <h1 class="text-2xl font-bold text-gray-800">Controle de Amostras</h1>
+        <h1 class="text-2xl font-bold" style="color: #326b24;">Controle de Amostras</h1>
         <p class="text-xs text-gray-500">Digite suas credenciais para acessar o sistema</p>
       </div>
 
       <form id="formLogin" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">Usuário de Acesso</label>
-          <input type="text" id="login_usuario" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: josevendas">
+          <input type="text" id="login_usuario" required class="w-full p-3 border rounded-lg focus:ring-2 outline-none text-sm transition-all" style="border-color: #cbd5e1;" placeholder="Ex: josevendas">
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">Senha</label>
-          <input type="password" id="login_senha" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="••••••••">
+          <input type="password" id="login_senha" required class="w-full p-3 border rounded-lg focus:ring-2 outline-none text-sm transition-all" style="border-color: #cbd5e1;" placeholder="••••••••">
         </div>
-        <button type="submit" id="btnLogin" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3 rounded-lg transition-all text-sm shadow-md">
-          Entrar no Sistema ➔
+        <button type="submit" id="btnLogin" class="w-full text-white font-bold py-3 rounded-lg transition-all text-sm shadow-md hover:opacity-90" style="background-color: #326b24;">
+          Entrar ➔
         </button>
       </form>
     </div>
@@ -1091,7 +1091,6 @@
           const dtInic = orig.iniciou ? formatarDataCurta(orig.iniciou) : '-';
           const dtFim = orig.fim ? formatarDataCurta(orig.fim) : (orig.iniciou ? 'Em andamento' : '-');
 
-          // Formatação detalhada com horas/minutos quando em fila
           let tempoFilaTexto = '-';
           if (orig.chegou) {
             tempoFilaTexto = formatarLeadTime(info.diasFilaMs);
