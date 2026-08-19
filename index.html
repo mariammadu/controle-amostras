@@ -999,13 +999,15 @@
 
         setoresConfig.forEach(setor => {
           if (!setor.chegou) {
-            // Setor ainda não recebeu a amostra
             infoGanttSetores.push({
               nome: setor.nome,
               ativo: false,
               diaInicio: 0,
               diaFimReal: 0,
               estDias: setor.est,
+              diasFilaMs: 0,
+              diasExecMs: 0,
+              diasTotaisMs: 0,
               diasFila: 0,
               diasExec: 0,
               diasTotais: 0,
@@ -1016,12 +1018,10 @@
             const dtStart = setor.iniciou ? new Date(setor.iniciou) : agora;
             const dtEnd = setor.fim ? new Date(setor.fim) : agora;
 
-            // Calcula tempo em fila
             const msFila = setor.iniciou 
               ? calcularTempoUtilMs(dtChegou, dtStart) 
               : calcularTempoUtilMs(dtChegou, agora);
 
-            // CORREÇÃO AQUI: Execução só é calculada se o setor tiver INICIADO
             const msExec = setor.iniciou ? calcularTempoUtilMs(dtStart, dtEnd) : 0;
             const msTotal = msFila + msExec;
 
@@ -1035,7 +1035,6 @@
 
             if (colEnd > maxDiaMatriz) maxDiaMatriz = colEnd;
 
-            // Rendimento só calcula se o setor iniciou ou teve a estimativa definida
             let rend = '-';
             if (setor.iniciou && setor.est > 0 && diasTotais > 0) {
               let pct = Math.round((setor.est / diasTotais) * 100);
@@ -1045,10 +1044,13 @@
 
             infoGanttSetores.push({
               nome: setor.nome,
-              ativo: !!setor.iniciou, // Só fica ativo visualmente no Gantt se o setor INICIOU
+              ativo: !!setor.iniciou,
               diaInicio: colStart,
               diaFimReal: colEnd,
               estDias: setor.est,
+              diasFilaMs: msFila,
+              diasExecMs: msExec,
+              diasTotaisMs: msTotal,
               diasFila: diasFila,
               diasExec: diasExec,
               diasTotais: diasTotais,
@@ -1089,14 +1091,30 @@
           const dtInic = orig.iniciou ? formatarDataCurta(orig.iniciou) : '-';
           const dtFim = orig.fim ? formatarDataCurta(orig.fim) : (orig.iniciou ? 'Em andamento' : '-');
 
+          // Formatação detalhada com horas/minutos quando em fila
+          let tempoFilaTexto = '-';
+          if (orig.chegou) {
+            tempoFilaTexto = formatarLeadTime(info.diasFilaMs);
+          }
+
+          let tempoExecTexto = '-';
+          if (info.ativo) {
+            tempoExecTexto = formatarLeadTime(info.diasExecMs);
+          }
+
+          let tempoTotalTexto = '-';
+          if (orig.chegou) {
+            tempoTotalTexto = formatarLeadTime(info.diasTotaisMs);
+          }
+
           linhasTabelaTempos += `
             <tr class="text-xs text-gray-700 hover:bg-gray-50">
               <td class="p-2 font-semibold border-b">${info.nome}</td>
               <td class="p-2 border-b text-gray-600">${dtInic} ➔ ${dtFim}</td>
               <td class="p-2 border-b text-amber-600 font-medium">${info.estDias ? info.estDias + ' dia(s)' : '-'}</td>
-              <td class="p-2 border-b text-orange-600 font-medium">${orig.chegou ? info.diasFila + ' dia(s)' : '-'}</td>
-              <td class="p-2 border-b text-blue-600 font-medium">${info.ativo ? info.diasExec + ' dia(s)' : '-'}</td>
-              <td class="p-2 border-b font-bold text-slate-800">${info.ativo ? info.diasTotais + ' dia(s)' : '-'}</td>
+              <td class="p-2 border-b text-orange-600 font-medium">${tempoFilaTexto}</td>
+              <td class="p-2 border-b text-blue-600 font-medium">${tempoExecTexto}</td>
+              <td class="p-2 border-b font-bold text-slate-800">${tempoTotalTexto}</td>
               <td class="p-2 border-b font-bold text-emerald-600">${info.rendimento}</td>
             </tr>
           `;
@@ -1110,6 +1128,9 @@
           const orig = setoresConfig[idx];
           const dtInic = orig.iniciou ? formatarDataCurta(orig.iniciou) : '-';
           const dtFim = orig.fim ? formatarDataCurta(orig.fim) : (orig.iniciou ? 'Em andamento' : '-');
+
+          const tempoFilaTexto = orig.chegou ? formatarLeadTime(info.diasFilaMs) : '-';
+          const tempoExecTexto = info.ativo ? formatarLeadTime(info.diasExecMs) : '-';
 
           if (info.ativo) {
             let pctPrazo = 0;
@@ -1140,7 +1161,7 @@
 
                 <div class="flex justify-between text-[11px] text-gray-500">
                   <span>🎯 Est: <b>${info.estDias}d</b></span>
-                  <span>⏱️ Gastos (Total): <b>${info.diasTotais}d</b></span>
+                  <span>⏱️ Gastos: <b>${formatarLeadTime(info.diasTotaisMs)}</b></span>
                 </div>
               </div>
             `;
@@ -1155,8 +1176,8 @@
                   <div><b>Período:</b> ${dtInic} ➔ ${dtFim}</div>
                   <div class="grid grid-cols-3 gap-1 pt-1 text-center font-medium">
                     <div class="bg-amber-50 p-1 rounded text-amber-800">🎯 Est: ${info.estDias}d</div>
-                    <div class="bg-orange-50 p-1 rounded text-orange-800">⏳ Fila: ${info.diasFila}d</div>
-                    <div class="bg-blue-50 p-1 rounded text-blue-800">⚙️ Exec: ${info.diasExec}d</div>
+                    <div class="bg-orange-50 p-1 rounded text-orange-800">⏳ Fila: ${tempoFilaTexto}</div>
+                    <div class="bg-blue-50 p-1 rounded text-blue-800">⚙️ Exec: ${tempoExecTexto}</div>
                   </div>
                 </div>
               </div>
@@ -1165,7 +1186,7 @@
             cardsGanttMobileHTML += `
               <div class="bg-gray-50 p-2.5 rounded-lg border border-dashed border-gray-300 flex justify-between items-center text-xs text-gray-400">
                 <span>${info.nome}</span>
-                <span class="italic text-[10px]">${orig.chegou ? 'Aguardando Início (Em fila)' : 'Pendente'}</span>
+                <span class="italic text-[10px]">${orig.chegou ? 'Aguardando Início (Fila: ' + tempoFilaTexto + ')' : 'Pendente'}</span>
               </div>
             `;
           }
@@ -1210,7 +1231,7 @@
             <!-- VISUALIZAÇÃO COMPUTADOR (TABELA DETALHADA) -->
             <div class="hidden md:block bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2 w-full overflow-hidden">
               <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                ⏱️ Resumo de Performance por Setor
+                ⏱️ Resumo de Performance da Amostra por Setor
               </h4>
               <div class="overflow-x-auto w-full">
                 <table class="w-full text-left text-xs min-w-[500px]">
@@ -1222,7 +1243,7 @@
                       <th class="p-2 text-orange-700">⏳ Tempo em Fila</th>
                       <th class="p-2 text-blue-700">⚙️ Dias Execução</th>
                       <th class="p-2 text-slate-800">⏱️ Total no Setor</th>
-                      <th class="p-2 text-emerald-700">📈 Performance</th>
+                      <th class="p-2 text-emerald-700">📈 Performance Total</th>
                     </tr>
                   </thead>
                   <tbody>${linhasTabelaTempos}</tbody>
