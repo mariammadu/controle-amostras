@@ -999,6 +999,7 @@
 
         setoresConfig.forEach(setor => {
           if (!setor.chegou) {
+            // Setor ainda não recebeu a amostra
             infoGanttSetores.push({
               nome: setor.nome,
               ativo: false,
@@ -1015,22 +1016,28 @@
             const dtStart = setor.iniciou ? new Date(setor.iniciou) : agora;
             const dtEnd = setor.fim ? new Date(setor.fim) : agora;
 
-            const msFila = setor.iniciou ? calcularTempoUtilMs(dtChegou, dtStart) : calcularTempoUtilMs(dtChegou, agora);
+            // Calcula tempo em fila
+            const msFila = setor.iniciou 
+              ? calcularTempoUtilMs(dtChegou, dtStart) 
+              : calcularTempoUtilMs(dtChegou, agora);
+
+            // CORREÇÃO AQUI: Execução só é calculada se o setor tiver INICIADO
             const msExec = setor.iniciou ? calcularTempoUtilMs(dtStart, dtEnd) : 0;
             const msTotal = msFila + msExec;
 
             const diasFila = Math.ceil(msFila / msPorJornada9h);
-            const diasExec = Math.max(1, Math.ceil(msExec / msPorJornada9h));
-            const diasTotais = Math.max(1, Math.ceil(msTotal / msPorJornada9h));
+            const diasExec = setor.iniciou ? Math.max(1, Math.ceil(msExec / msPorJornada9h)) : 0;
+            const diasTotais = Math.max(diasFila, Math.ceil(msTotal / msPorJornada9h));
 
             const msDesdeInicioGeral = calcularTempoUtilMs(tCriado, dtChegou);
             let colStart = Math.floor(msDesdeInicioGeral / msPorJornada9h) + 1;
-            let colEnd = colStart + diasTotais - 1;
+            let colEnd = colStart + (diasTotais > 0 ? diasTotais - 1 : 0);
 
             if (colEnd > maxDiaMatriz) maxDiaMatriz = colEnd;
 
+            // Rendimento só calcula se o setor iniciou ou teve a estimativa definida
             let rend = '-';
-            if (setor.est > 0) {
+            if (setor.iniciou && setor.est > 0 && diasTotais > 0) {
               let pct = Math.round((setor.est / diasTotais) * 100);
               if (pct > 100) pct = 100;
               rend = `${pct}%`;
@@ -1038,7 +1045,7 @@
 
             infoGanttSetores.push({
               nome: setor.nome,
-              ativo: true,
+              ativo: !!setor.iniciou, // Só fica ativo visualmente no Gantt se o setor INICIOU
               diaInicio: colStart,
               diaFimReal: colEnd,
               estDias: setor.est,
@@ -1087,7 +1094,7 @@
               <td class="p-2 font-semibold border-b">${info.nome}</td>
               <td class="p-2 border-b text-gray-600">${dtInic} ➔ ${dtFim}</td>
               <td class="p-2 border-b text-amber-600 font-medium">${info.estDias ? info.estDias + ' dia(s)' : '-'}</td>
-              <td class="p-2 border-b text-orange-600 font-medium">${info.ativo ? info.diasFila + ' dia(s)' : '-'}</td>
+              <td class="p-2 border-b text-orange-600 font-medium">${orig.chegou ? info.diasFila + ' dia(s)' : '-'}</td>
               <td class="p-2 border-b text-blue-600 font-medium">${info.ativo ? info.diasExec + ' dia(s)' : '-'}</td>
               <td class="p-2 border-b font-bold text-slate-800">${info.ativo ? info.diasTotais + ' dia(s)' : '-'}</td>
               <td class="p-2 border-b font-bold text-emerald-600">${info.rendimento}</td>
@@ -1158,7 +1165,7 @@
             cardsGanttMobileHTML += `
               <div class="bg-gray-50 p-2.5 rounded-lg border border-dashed border-gray-300 flex justify-between items-center text-xs text-gray-400">
                 <span>${info.nome}</span>
-                <span class="italic text-[10px]">Pendente</span>
+                <span class="italic text-[10px]">${orig.chegou ? 'Aguardando Início (Em fila)' : 'Pendente'}</span>
               </div>
             `;
           }
