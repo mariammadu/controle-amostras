@@ -123,18 +123,18 @@
         <form id="formAmostra" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Nome da Amostra *</label>
-            <input type="text" id="nome_amostra" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Cliente SEMAE">
+            <input type="text" id="nome_amostra" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Cliente CPFL São Paulo">
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Número do Pedido (Opcional | Possível Adicionar Posteriormente)</label>
-            <input type="text" id="numero_pedido" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Nº pedido gerado pela markup">
+            <input type="text" id="numero_pedido" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Nº pedido gerado pela Markup">
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Responsável Comercial *</label>
             <input type="text" id="vendedor_solicitante" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Rafa">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Estimativa de Conclusão de Vendas (Em Dias) *</label>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Estimativa de Conclusão de Vendas (Dias) *</label>
             <input type="number" id="estimativa_vendas" min="1" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: 3">
           </div>
           <div class="md:col-span-2">
@@ -142,8 +142,8 @@
             <input type="file" id="arquivo_ficha" accept="application/pdf,image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
           </div>
           <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Observação Inicial (Opcional)</label>
-            <textarea id="observacao_inicial" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Modelo 670 com logo cliente, reflet. costurado."></textarea>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Observação Inicial (Opcional | Possível Adicionar Posteriormente)</label>
+            <textarea id="observacao_inicial" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Modelo 670 (à princípio) com logo do cliente e refletivo."></textarea>
           </div>
           <div class="md:col-span-2">
             <button type="submit" id="btnSalvarAmostra" class="w-full text-white font-bold py-2.5 rounded-lg transition-all text-sm shadow-md hover:opacity-90" style="background-color: #326b24;">
@@ -279,7 +279,7 @@
   </main>
 
   <footer id="rodapeCreditos" class="hidden text-center py-4 text-xs text-gray-500 border-t border-gray-200 mt-auto bg-white/80 backdrop-blur-sm w-full">
-    <p>Sistema desenvolvido por Maria Eduarda Santos | Sistema de Controle de Amostras</p>
+    <p>Sistema desenvolvido por Maria Eduarda Santos | Controle de Amostras Pantaneiro </p>
   </footer>
 
   <script>
@@ -527,7 +527,7 @@
         if (compInic) resumoTimeline += `<div>🛒 <b>Compras:</b> ${compInic} ${compFim ? '➔ ' + compFim : '(Em andamento)'}</div>`;
         if (pInic) resumoTimeline += `<div>🚚 <b>Produção:</b> ${pInic} ${pFim ? '➔ ' + pFim : '(Em andamento)'}</div>`;
         if (cInic) resumoTimeline += `<div>💰 <b>Custos:</b> ${cInic} ${cFim ? '➔ ' + cFim : '(Em andamento)'}</div>`;
-        if (!vInic && !mInic && !compInic && !pInic && !cInic) resumoTimeline += `<span class="text-gray-400 italic">Nenhum setor initiated</span>`;
+        if (!vInic && !mInic && !compInic && !pInic && !cInic) resumoTimeline += `<span class="text-gray-400 italic">Nenhum setor iniciado</span>`;
         resumoTimeline += `</div>`;
 
         tbody.innerHTML += `
@@ -684,7 +684,7 @@
 
     function formatarDataCurta(dataIso) {
       if (!dataIso) return null;
-      const d = new Date(dataIso);
+      const d = parseDataLocal(dataIso);
       const dia = String(d.getDate()).padStart(2, '0');
       const mes = String(d.getMonth() + 1).padStart(2, '0');
       const hora = String(d.getHours()).padStart(2, '0');
@@ -923,15 +923,92 @@
       alert(msg);
     }
 
+    function parseDataLocal(dataStr) {
+      if (!dataStr) return null;
+      return new Date(dataStr);
+    }
+
+    function toDayStr(dt) {
+      if (!dt) return "";
+      let d = new Date(dt);
+      let y = d.getFullYear();
+      let m = String(d.getMonth() + 1).padStart(2, '0');
+      let day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function gerarListaDiasUteis(dataInicio, quantDiasMax) {
+      let lista = [];
+      let cur = new Date(dataInicio.getTime());
+      cur.setHours(0,0,0,0);
+
+      while (lista.length < quantDiasMax) {
+        let w = cur.getDay();
+        if (w !== 0 && w !== 6) {
+          lista.push(toDayStr(cur));
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+      return lista;
+    }
+
+    // CONTA DIAS ÚTEIS REALMENTE TRABALHADOS ENTRE DUAS DATAS
+    function contarDiasUteisCalendario(d1, d2) {
+      if (!d1 || !d2) return 0;
+      let inicio = new Date(d1.getTime());
+      let fim = new Date(d2.getTime());
+      if (inicio > fim) return 0;
+
+      inicio.setHours(0,0,0,0);
+      fim.setHours(0,0,0,0);
+
+      let count = 0;
+      let cur = new Date(inicio.getTime());
+
+      while (cur <= fim) {
+        let w = cur.getDay();
+        if (w !== 0 && w !== 6) {
+          count++;
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+      return count;
+    }
+
+    // CONTA DIAS ÚTEIS INTERMEDIÁRIOS DE FILA (EXCLUI OS PRÓPRIOS DIAS DAS EXECUTAS)
+    function contarDiasUteisFilaIntermediarios(dChegou, dInic) {
+      if (!dChegou || !dInic) return 0;
+      let c = new Date(dChegou.getTime());
+      let i = new Date(dInic.getTime());
+
+      c.setHours(0,0,0,0);
+      i.setHours(0,0,0,0);
+
+      // Se o setor iniciou no mesmo dia ou no próximo dia útil imediato (ex: Sexta ➔ Segunda), Fila = 0
+      let cur = new Date(c.getTime());
+      cur.setDate(cur.getDate() + 1);
+
+      let countFila = 0;
+      while (cur < i) {
+        let w = cur.getDay();
+        if (w !== 0 && w !== 6) {
+          countFila++;
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+      return countFila;
+    }
+
+    // CÁLCULO DE MILISSEGUNDOS ÚTEIS EM JORNADA DE 9H
     function calcularTempoUtilMs(inicio, fim) {
       if (!inicio || !fim) return 0;
-      let dStart = new Date(inicio);
-      let dEnd = new Date(fim);
+      let dStart = parseDataLocal(inicio);
+      let dEnd = parseDataLocal(fim);
 
       if (dStart >= dEnd) return 0;
 
       let tempoTotalMs = 0;
-      let cursor = new Date(dStart);
+      let cursor = new Date(dStart.getTime());
 
       while (cursor < dEnd) {
         let proximoPasso = new Date(cursor.getTime() + 60 * 60 * 1000);
@@ -1000,8 +1077,7 @@
       }
 
       lista.forEach(amostra => {
-        const msPorJornada9h = 1000 * 60 * 60 * 9;
-        const tCriado = new Date(amostra.vendas_inicio || amostra.criado_em);
+        const tCriado = parseDataLocal(amostra.vendas_inicio || amostra.criado_em);
         const agora = new Date();
 
         const setoresConfig = [
@@ -1012,50 +1088,84 @@
           { key: 'custos', nome: 'Custos', chegou: amostra.producao_fim, iniciou: amostra.custos_inicio, fim: amostra.custos_fim, est: amostra.estimativa_custos || 0 }
         ];
 
-        let maxDiaMatriz = 1;
+        const listaDiasUteisColunas = gerarListaDiasUteis(tCriado, 30);
         let infoGanttSetores = [];
 
-        setoresConfig.forEach(setor => {
+        setoresConfig.forEach((setor) => {
           if (!setor.chegou) {
             infoGanttSetores.push({
               nome: setor.nome,
               ativo: false,
-              diaInicio: 0,
-              diaFimReal: 0,
               estDias: setor.est,
               diasFilaMs: 0,
               diasExecMs: 0,
               diasTotaisMs: 0,
-              diasFila: 0,
-              diasExec: 0,
-              diasTotais: 0,
-              rendimento: '-'
+              diasFilaTxt: '0h',
+              diasExecTxt: '-',
+              diasTotaisTxt: '0h',
+              rendimento: '-',
+              dtCalculadaInic: null,
+              dtCalculadaFim: null,
+              diasExecSet: new Set()
             });
           } else {
-            const dtChegou = new Date(setor.chegou);
-            const dtStart = setor.iniciou ? new Date(setor.iniciou) : agora;
-            const dtEnd = setor.fim ? new Date(setor.fim) : agora;
+            const dtChegou = parseDataLocal(setor.chegou);
+            const dtStartExec = setor.iniciou ? parseDataLocal(setor.iniciou) : null;
+            
+            let dtEndExec = null;
+            if (setor.fim) {
+              dtEndExec = parseDataLocal(setor.fim);
+            } else if (setor.iniciou) {
+              dtEndExec = agora;
+            }
 
-            const msFila = setor.iniciou 
-              ? calcularTempoUtilMs(dtChegou, dtStart) 
-              : calcularTempoUtilMs(dtChegou, agora);
-
-            const msExec = setor.iniciou ? calcularTempoUtilMs(dtStart, dtEnd) : 0;
+            // TEMPOS EM MILISSEGUNDOS BRUTOS
+            let msFila = dtStartExec ? calcularTempoUtilMs(dtChegou, dtStartExec) : calcularTempoUtilMs(dtChegou, agora);
+            let msExec = (dtStartExec && dtEndExec) ? calcularTempoUtilMs(dtStartExec, dtEndExec) : 0;
             const msTotal = msFila + msExec;
 
-            const diasFila = Math.ceil(msFila / msPorJornada9h);
-            const diasExec = setor.iniciou ? Math.max(1, Math.ceil(msExec / msPorJornada9h)) : 0;
-            const diasTotais = Math.max(diasFila, Math.ceil(msTotal / msPorJornada9h));
+            // FORMATADORES DE TEXTO DA TABELA
+            let txtFila = formatarLeadTime(msFila);
+            let txtExec = '-';
+            let txtTotal = formatarLeadTime(msTotal);
 
-            const msDesdeInicioGeral = calcularTempoUtilMs(tCriado, dtChegou);
-            let colStart = Math.floor(msDesdeInicioGeral / msPorJornada9h) + 1;
-            let colEnd = colStart + (diasTotais > 0 ? diasTotais - 1 : 0);
+            if (setor.iniciou && setor.fim) {
+              let dExecCnt = contarDiasUteisCalendario(dtStartExec, dtEndExec);
+              txtExec = `${dExecCnt} d`;
+              
+              let dFilaCnt = contarDiasUteisFilaIntermediarios(dtChegou, dtStartExec);
+              txtFila = dFilaCnt > 0 ? `${dFilaCnt} d` : '0h';
+              
+              txtTotal = `${dFilaCnt + dExecCnt} d`;
+            } else if (setor.iniciou) {
+              txtExec = formatarLeadTime(msExec);
+            } else if (setor.chegou) {
+              let dFilaCnt = contarDiasUteisFilaIntermediarios(dtChegou, agora);
+              txtFila = dFilaCnt > 0 ? `${dFilaCnt} d` : formatarLeadTime(msFila);
+              txtTotal = txtFila;
+            }
 
-            if (colEnd > maxDiaMatriz) maxDiaMatriz = colEnd;
+            // GANTT: QUADRADOS DA EXECUÇÃO REAL
+            let diasExecSet = new Set();
+            if (dtStartExec && dtEndExec) {
+              let cur = new Date(dtStartExec.getTime());
+              cur.setHours(0,0,0,0);
+              let fimExec = new Date(dtEndExec.getTime());
+              fimExec.setHours(0,0,0,0);
+
+              while (cur <= fimExec) {
+                let w = cur.getDay();
+                if (w !== 0 && w !== 6) {
+                  diasExecSet.add(toDayStr(cur));
+                }
+                cur.setDate(cur.getDate() + 1);
+              }
+            }
 
             let rend = '-';
-            if (setor.iniciou && setor.est > 0 && diasTotais > 0) {
-              let pct = Math.round((setor.est / diasTotais) * 100);
+            const totalDiasContados = diasExecSet.size;
+            if (setor.iniciou && setor.est > 0 && totalDiasContados > 0) {
+              let pct = Math.round((setor.est / totalDiasContados) * 100);
               if (pct > 100) pct = 100;
               rend = `${pct}%`;
             }
@@ -1063,24 +1173,25 @@
             infoGanttSetores.push({
               nome: setor.nome,
               ativo: !!setor.iniciou,
-              diaInicio: colStart,
-              diaFimReal: colEnd,
               estDias: setor.est,
               diasFilaMs: msFila,
               diasExecMs: msExec,
               diasTotaisMs: msTotal,
-              diasFila: diasFila,
-              diasExec: diasExec,
-              diasTotais: diasTotais,
-              rendimento: rend
+              diasFilaTxt: txtFila,
+              diasExecTxt: txtExec,
+              diasTotaisTxt: txtTotal,
+              rendimento: rend,
+              dtCalculadaInic: setor.iniciou ? dtStartExec : dtChegou,
+              dtCalculadaFim: setor.fim ? dtEndExec : null,
+              diasExecSet: diasExecSet
             });
           }
         });
 
-        const totalColunasTabela = Math.max(18, maxDiaMatriz + 2);
+        const totalColunasTabela = 18;
 
         // --- RENDERIZAÇÃO DESKTOP (TABELAS DE GANTT E RESUMO) ---
-        let headerDias = `<th class="setor-col">DIAS</th>`;
+        let headerDias = `<th class="setor-col">DIAS ÚTEIS</th>`;
         for (let d = 1; d <= totalColunasTabela; d++) {
           headerDias += `<th class="bg-gray-50 text-gray-700 font-bold">${d}</th>`;
         }
@@ -1091,47 +1202,43 @@
         infoGanttSetores.forEach((info, idx) => {
           linhasSetoresHTML += `<tr><td class="setor-col flex justify-between items-center pr-2"><span>${info.nome}</span> <span class="text-[10px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-bold">${info.rendimento}</span></td>`;
           
+          let contadorExecucaoCorrente = 0;
+
           for (let d = 1; d <= totalColunasTabela; d++) {
             let celulaEstilo = '';
-            if (info.ativo && d >= info.diaInicio && d <= info.diaFimReal) {
-              const posicaoRelativaDia = (d - info.diaInicio) + 1;
-              if (info.estDias > 0 && posicaoRelativaDia > info.estDias) {
-                celulaEstilo = `style="background-color: #ef4444;" title="Excedido"`;
+            const dataIsoDiaColuna = listaDiasUteisColunas[d - 1];
+
+            // PINTA EXCLUSIVAMENTE A EXECUÇÃO ÚTIL (VERDE NO PRAZO, VERMELHO NO EXCESSO)
+            if (info.ativo && info.diasExecSet.has(dataIsoDiaColuna)) {
+              contadorExecucaoCorrente++;
+              if (info.estDias > 0 && contadorExecucaoCorrente > info.estDias) {
+                celulaEstilo = `style="background-color: #ef4444;" title="Prazo Excedido"`;
               } else {
-                celulaEstilo = `style="background-color: #22c55e;" title="No prazo"`;
+                celulaEstilo = `style="background-color: #22c55e;" title="Dentro do Prazo"`;
               }
             }
+
             linhasSetoresHTML += `<td ${celulaEstilo}></td>`;
           }
           linhasSetoresHTML += `</tr>`;
 
           const orig = setoresConfig[idx];
-          const dtInic = orig.iniciou ? formatarDataCurta(orig.iniciou) : '-';
-          const dtFim = orig.fim ? formatarDataCurta(orig.fim) : (orig.iniciou ? 'Em andamento' : '-');
-
-          let tempoFilaTexto = '-';
-          if (orig.chegou) {
-            tempoFilaTexto = formatarLeadTime(info.diasFilaMs);
-          }
-
-          let tempoExecTexto = '-';
-          if (info.ativo) {
-            tempoExecTexto = formatarLeadTime(info.diasExecMs);
-          }
-
-          let tempoTotalTexto = '-';
-          if (orig.chegou) {
-            tempoTotalTexto = formatarLeadTime(info.diasTotaisMs);
+          const dtInicText = info.dtCalculadaInic ? formatarDataCurta(info.dtCalculadaInic) : '-';
+          let dtFimText = '-';
+          if (info.dtCalculadaFim) {
+            dtFimText = formatarDataCurta(info.dtCalculadaFim);
+          } else if (orig.iniciou) {
+            dtFimText = 'Em andamento';
           }
 
           linhasTabelaTempos += `
             <tr class="text-xs text-gray-700 hover:bg-gray-50">
               <td class="p-2 font-semibold border-b">${info.nome}</td>
-              <td class="p-2 border-b text-gray-600">${dtInic} ➔ ${dtFim}</td>
+              <td class="p-2 border-b text-gray-600">${dtInicText} ➔ ${dtFimText}</td>
               <td class="p-2 border-b text-amber-600 font-medium">${info.estDias ? info.estDias + ' dia(s)' : '-'}</td>
-              <td class="p-2 border-b text-orange-600 font-medium">${tempoFilaTexto}</td>
-              <td class="p-2 border-b text-blue-600 font-medium">${tempoExecTexto}</td>
-              <td class="p-2 border-b font-bold text-slate-800">${tempoTotalTexto}</td>
+              <td class="p-2 border-b text-orange-600 font-medium">${info.diasFilaTxt}</td>
+              <td class="p-2 border-b text-blue-600 font-medium">${info.diasExecTxt}</td>
+              <td class="p-2 border-b font-bold text-slate-800">${info.diasTotaisTxt}</td>
               <td class="p-2 border-b font-bold text-emerald-600">${info.rendimento}</td>
             </tr>
           `;
@@ -1143,11 +1250,8 @@
 
         infoGanttSetores.forEach((info, idx) => {
           const orig = setoresConfig[idx];
-          const dtInic = orig.iniciou ? formatarDataCurta(orig.iniciou) : '-';
-          const dtFim = orig.fim ? formatarDataCurta(orig.fim) : (orig.iniciou ? 'Em andamento' : '-');
-
-          const tempoFilaTexto = orig.chegou ? formatarLeadTime(info.diasFilaMs) : '-';
-          const tempoExecTexto = info.ativo ? formatarLeadTime(info.diasExecMs) : '-';
+          const dtInicText = info.dtCalculadaInic ? formatarDataCurta(info.dtCalculadaInic) : '-';
+          let dtFimText = info.dtCalculadaFim ? formatarDataCurta(info.dtCalculadaFim) : (orig.iniciou ? 'Em andamento' : '-');
 
           if (info.ativo) {
             let pctPrazo = 0;
@@ -1155,10 +1259,10 @@
             let prazoStatusTexto = 'Dentro da estimativa';
 
             if (info.estDias > 0) {
-              pctPrazo = Math.min(100, Math.round((info.diasTotais / info.estDias) * 100));
-              if (info.diasTotais > info.estDias) {
+              pctPrazo = Math.min(100, Math.round((info.diasExecSet.size / info.estDias) * 100));
+              if (info.diasExecSet.size > info.estDias) {
                 barraCor = 'bg-red-500';
-                prazoStatusTexto = `Atrasado (+${info.diasTotais - info.estDias} d)`;
+                prazoStatusTexto = `Atrasado (+${info.diasExecSet.size - info.estDias} d)`;
               }
             }
 
@@ -1167,7 +1271,7 @@
                 <div class="flex justify-between items-center text-xs">
                   <span class="font-bold text-gray-800">${info.nome}</span>
                   <div class="space-x-1">
-                    <span class="text-[10px] px-2 py-0.5 rounded font-bold text-white ${info.diasTotais > info.estDias ? 'bg-red-600' : 'bg-emerald-600'}">${prazoStatusTexto}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded font-bold text-white ${info.diasExecSet.size > info.estDias ? 'bg-red-600' : 'bg-emerald-600'}">${prazoStatusTexto}</span>
                     <span class="text-[10px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-bold">Rend: ${info.rendimento}</span>
                   </div>
                 </div>
@@ -1178,7 +1282,7 @@
 
                 <div class="flex justify-between text-[11px] text-gray-500">
                   <span>🎯 Est: <b>${info.estDias}d</b></span>
-                  <span>⏱️ Gastos: <b>${formatarLeadTime(info.diasTotaisMs)}</b></span>
+                  <span>⏱️ Gastos: <b>${info.diasTotaisTxt}</b></span>
                 </div>
               </div>
             `;
@@ -1190,11 +1294,11 @@
                   <span class="text-emerald-700">Rendimento: ${info.rendimento}</span>
                 </div>
                 <div class="text-[11px] text-gray-600 pt-1">
-                  <div><b>Período:</b> ${dtInic} ➔ ${dtFim}</div>
+                  <div><b>Período:</b> ${dtInicText} ➔ ${dtFimText}</div>
                   <div class="grid grid-cols-3 gap-1 pt-1 text-center font-medium">
                     <div class="bg-amber-50 p-1 rounded text-amber-800">🎯 Est: ${info.estDias}d</div>
-                    <div class="bg-orange-50 p-1 rounded text-orange-800">⏳ Fila: ${tempoFilaTexto}</div>
-                    <div class="bg-blue-50 p-1 rounded text-blue-800">⚙️ Exec: ${tempoExecTexto}</div>
+                    <div class="bg-orange-50 p-1 rounded text-orange-800">⏳ Fila: ${info.diasFilaTxt}</div>
+                    <div class="bg-blue-50 p-1 rounded text-blue-800">⚙️ Exec: ${info.diasExecTxt}</div>
                   </div>
                 </div>
               </div>
@@ -1203,7 +1307,7 @@
             cardsGanttMobileHTML += `
               <div class="bg-gray-50 p-2.5 rounded-lg border border-dashed border-gray-300 flex justify-between items-center text-xs text-gray-400">
                 <span>${info.nome}</span>
-                <span class="italic text-[10px]">${orig.chegou ? 'Aguardando Início (Fila: ' + tempoFilaTexto + ')' : 'Pendente'}</span>
+                <span class="italic text-[10px]">${orig.chegou ? 'Aguardando Início (Fila: ' + info.diasFilaTxt + ')' : 'Pendente'}</span>
               </div>
             `;
           }
@@ -1227,6 +1331,12 @@
                 <p class="text-xs text-gray-400">Solicitante: ${amostra.vendedor_solicitante} | Criado em: ${new Date(tCriado).toLocaleDateString('pt-BR')}</p>
               </div>
               <span class="text-xs px-3 py-1 rounded-full font-bold text-white" style="background-color: #326b24;">${amostra.status_atual}</span>
+            </div>
+
+            <!-- LEGENDA DAS CORES -->
+            <div class="flex items-center gap-4 text-xs font-semibold text-gray-600 bg-slate-50 p-2 rounded-lg border w-fit">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> Execução no Prazo</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-red-500 inline-block"></span> Execução Excedida</span>
             </div>
 
             <!-- VISUALIZAÇÃO COMPUTADOR (TABELA DE GANTT) -->
@@ -1260,7 +1370,7 @@
                       <th class="p-2 text-orange-700">⏳ Tempo em Fila</th>
                       <th class="p-2 text-blue-700">⚙️ Tempo em Execução</th>
                       <th class="p-2 text-slate-800">⏱️ Total no Setor</th>
-                      <th class="p-2 text-emerald-700">📈 Performance</th>
+                      <th class="p-2 text-emerald-700">📈 Performance Total</th>
                     </tr>
                   </thead>
                   <tbody>${linhasTabelaTempos}</tbody>
