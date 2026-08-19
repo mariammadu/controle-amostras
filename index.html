@@ -194,7 +194,7 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 class="text-lg font-bold text-gray-800">📊 Gráfico de Gantt e Rendimento por Setor</h2>
-            <p class="text-xs text-gray-500">Fluxo: Vendas ➔ Modelagem ➔ Compras ➔ Produção ➔ Custos. (O tempo em fila é contabilizado no rendimento final do setor).</p>
+            <p class="text-xs text-gray-500">Fluxo: Vendas ➔ Modelagem ➔ Compras ➔ Produção ➔ Custos.</p>
           </div>
 
           <div class="relative w-full md:w-80">
@@ -1015,12 +1015,10 @@
             const dtStart = setor.iniciou ? new Date(setor.iniciou) : agora;
             const dtEnd = setor.fim ? new Date(setor.fim) : agora;
 
-            // Tempo útil em MS
             const msFila = setor.iniciou ? calcularTempoUtilMs(dtChegou, dtStart) : calcularTempoUtilMs(dtChegou, agora);
             const msExec = setor.iniciou ? calcularTempoUtilMs(dtStart, dtEnd) : 0;
             const msTotal = msFila + msExec;
 
-            // Conversão para dias
             const diasFila = Math.ceil(msFila / msPorJornada9h);
             const diasExec = Math.max(1, Math.ceil(msExec / msPorJornada9h));
             const diasTotais = Math.max(1, Math.ceil(msTotal / msPorJornada9h));
@@ -1031,7 +1029,6 @@
 
             if (colEnd > maxDiaMatriz) maxDiaMatriz = colEnd;
 
-            // Rendimento levando a Fila em consideração
             let rend = '-';
             if (setor.est > 0) {
               let pct = Math.round((setor.est / diasTotais) * 100);
@@ -1055,6 +1052,7 @@
 
         const totalColunasTabela = Math.max(18, maxDiaMatriz + 2);
 
+        // --- RENDERIZAÇÃO DESKTOP (TABELAS DE GANTT E RESUMO) ---
         let headerDias = `<th class="setor-col">DIAS</th>`;
         for (let d = 1; d <= totalColunasTabela; d++) {
           headerDias += `<th class="bg-gray-50 text-gray-700 font-bold">${d}</th>`;
@@ -1064,16 +1062,16 @@
         let linhasTabelaTempos = '';
 
         infoGanttSetores.forEach((info, idx) => {
-          linhasSetoresHTML += `<tr><td class="setor-col flex justify-between items-center pr-2"><span>${info.nome}</span> <span class="text-[10px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-bold" title="Rendimento do setor">${info.rendimento}</span></td>`;
+          linhasSetoresHTML += `<tr><td class="setor-col flex justify-between items-center pr-2"><span>${info.nome}</span> <span class="text-[10px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-bold">${info.rendimento}</span></td>`;
           
           for (let d = 1; d <= totalColunasTabela; d++) {
             let celulaEstilo = '';
             if (info.ativo && d >= info.diaInicio && d <= info.diaFimReal) {
               const posicaoRelativaDia = (d - info.diaInicio) + 1;
               if (info.estDias > 0 && posicaoRelativaDia > info.estDias) {
-                celulaEstilo = `style="background-color: #ef4444;" title="Excedido (Vermelho)"`;
+                celulaEstilo = `style="background-color: #ef4444;" title="Excedido"`;
               } else {
-                celulaEstilo = `style="background-color: #22c55e;" title="No prazo (Verde)"`;
+                celulaEstilo = `style="background-color: #22c55e;" title="No prazo"`;
               }
             }
             linhasSetoresHTML += `<td ${celulaEstilo}></td>`;
@@ -1097,6 +1095,75 @@
           `;
         });
 
+        // --- RENDERIZAÇÃO MOBILE (CARDS RESPONSIVOS) ---
+        let cardsGanttMobileHTML = '';
+        let cardsResumoMobileHTML = '';
+
+        infoGanttSetores.forEach((info, idx) => {
+          const orig = setoresConfig[idx];
+          const dtInic = orig.iniciou ? formatarDataCurta(orig.iniciou) : '-';
+          const dtFim = orig.fim ? formatarDataCurta(orig.fim) : (orig.iniciou ? 'Em andamento' : '-');
+
+          if (info.ativo) {
+            let pctPrazo = 0;
+            let barraCor = 'bg-emerald-500';
+            let prazoStatusTexto = 'Dentro da estimativa';
+
+            if (info.estDias > 0) {
+              pctPrazo = Math.min(100, Math.round((info.diasTotais / info.estDias) * 100));
+              if (info.diasTotais > info.estDias) {
+                barraCor = 'bg-red-500';
+                prazoStatusTexto = `Atrasado (+${info.diasTotais - info.estDias} d)`;
+              }
+            }
+
+            cardsGanttMobileHTML += `
+              <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-gray-800">${info.nome}</span>
+                  <div class="space-x-1">
+                    <span class="text-[10px] px-2 py-0.5 rounded font-bold text-white ${info.diasTotais > info.estDias ? 'bg-red-600' : 'bg-emerald-600'}">${prazoStatusTexto}</span>
+                    <span class="text-[10px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-bold">Rend: ${info.rendimento}</span>
+                  </div>
+                </div>
+
+                <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                  <div class="${barraCor} h-2.5 transition-all duration-300" style="width: ${pctPrazo}%;"></div>
+                </div>
+
+                <div class="flex justify-between text-[11px] text-gray-500">
+                  <span>🎯 Est: <b>${info.estDias}d</b></span>
+                  <span>⏱️ Gastos (Total): <b>${info.diasTotais}d</b></span>
+                </div>
+              </div>
+            `;
+
+            cardsResumoMobileHTML += `
+              <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs space-y-1">
+                <div class="flex justify-between font-bold border-b pb-1">
+                  <span>${info.nome}</span>
+                  <span class="text-emerald-700">Rendimento: ${info.rendimento}</span>
+                </div>
+                <div class="text-[11px] text-gray-600 pt-1">
+                  <div><b>Período:</b> ${dtInic} ➔ ${dtFim}</div>
+                  <div class="grid grid-cols-3 gap-1 pt-1 text-center font-medium">
+                    <div class="bg-amber-50 p-1 rounded text-amber-800">🎯 Est: ${info.estDias}d</div>
+                    <div class="bg-orange-50 p-1 rounded text-orange-800">⏳ Fila: ${info.diasFila}d</div>
+                    <div class="bg-blue-50 p-1 rounded text-blue-800">⚙️ Exec: ${info.diasExec}d</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            cardsGanttMobileHTML += `
+              <div class="bg-gray-50 p-2.5 rounded-lg border border-dashed border-gray-300 flex justify-between items-center text-xs text-gray-400">
+                <span>${info.nome}</span>
+                <span class="italic text-[10px]">Pendente</span>
+              </div>
+            `;
+          }
+        });
+
         const obsFormatadaGerencia = amostra.observacoes 
           ? `<div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
                 <p class="font-bold mb-1">📜 Histórico de Observações da Amostra:</p>
@@ -1117,18 +1184,26 @@
               <span class="text-xs px-3 py-1 rounded-full font-bold bg-slate-900 text-white">${amostra.status_atual}</span>
             </div>
 
-            <div class="overflow-x-auto border rounded-lg w-full">
+            <!-- VISUALIZAÇÃO COMPUTADOR (TABELA DE GANTT) -->
+            <div class="hidden md:block overflow-x-auto border rounded-lg w-full">
               <table class="gantt-table">
                 <thead><tr>${headerDias}</tr></thead>
                 <tbody>${linhasSetoresHTML}</tbody>
               </table>
             </div>
 
+            <!-- VISUALIZAÇÃO CELULAR (CARDS GANTT) -->
+            <div class="md:hidden space-y-2">
+              <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">📊 Progresso Visual dos Setores</h4>
+              ${cardsGanttMobileHTML}
+            </div>
+
             ${obsFormatadaGerencia}
 
-            <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2 w-full overflow-hidden">
+            <!-- VISUALIZAÇÃO COMPUTADOR (TABELA DETALHADA) -->
+            <div class="hidden md:block bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2 w-full overflow-hidden">
               <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                ⏱️ Resumo de Performance
+                ⏱️ Resumo de Performance por Setor
               </h4>
               <div class="overflow-x-auto w-full">
                 <table class="w-full text-left text-xs min-w-[500px]">
@@ -1140,13 +1215,20 @@
                       <th class="p-2 text-orange-700">⏳ Tempo em Fila</th>
                       <th class="p-2 text-blue-700">⚙️ Dias Execução</th>
                       <th class="p-2 text-slate-800">⏱️ Total no Setor</th>
-                      <th class="p-2 text-emerald-700">📈 Performance Total</th>
+                      <th class="p-2 text-emerald-700">📈 Performance</th>
                     </tr>
                   </thead>
                   <tbody>${linhasTabelaTempos}</tbody>
                 </table>
               </div>
             </div>
+
+            <!-- VISUALIZAÇÃO CELULAR (CARDS RESUMO) -->
+            <div class="md:hidden bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">⏱️ Detalhamento por Setor</h4>
+              <div class="space-y-2">${cardsResumoMobileHTML}</div>
+            </div>
+
           </div>
         `;
       });
