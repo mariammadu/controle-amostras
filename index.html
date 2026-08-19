@@ -45,7 +45,7 @@
     </div>
   </div>
 
-  <!-- BARRA DE NAVEGAÇÃO ADAPTÁVEL -->
+  <!-- BARRA DE NAVEGAÇÃO -->
   <nav id="barraNavegacao" class="hidden bg-black text-white shadow-lg sticky top-0 z-50 border-b border-gray-800 w-full">
     <div class="max-w-7xl mx-auto px-2 sm:px-6 flex justify-between items-center h-16 w-full">
       <div class="hidden md:flex items-center space-x-2 shrink-0">
@@ -53,9 +53,7 @@
       </div>
 
       <div class="flex items-center justify-between w-full md:w-auto space-x-2 overflow-hidden">
-        <div id="menuAbas" class="flex space-x-1.5 overflow-x-auto no-scrollbar py-1 w-full md:w-auto items-center">
-          <!-- Abas Dinâmicas -->
-        </div>
+        <div id="menuAbas" class="flex space-x-1.5 overflow-x-auto no-scrollbar py-1 w-full md:w-auto items-center"></div>
 
         <button onclick="fazerLogout()" title="Sair do Sistema" class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 sm:px-3 py-1.5 rounded-lg transition-all font-semibold ml-1">
           🚪 Sair
@@ -110,27 +108,27 @@
         <form id="formAmostra" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Nome da Amostra *</label>
-            <input type="text" id="nome_amostra" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Cliente HONDA">
+            <input type="text" id="nome_amostra" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Jaqueta Impermeável">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Número do Pedido (Opcional/Possível Adicionar Posteriormente)</label>
-            <input type="text" id="numero_pedido" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Nº pedido gerado pela Markup">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Número do Pedido (Opcional)</label>
+            <input type="text" id="numero_pedido" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Nº pedido gerado pela markup">
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">Responsável Comercial *</label>
-            <input type="text" id="vendedor_solicitante" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Rafa">
+            <input type="text" id="vendedor_solicitante" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Maria Vendas">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Estimativa de Conclusão do Vendas (Dias) *</label>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Estimativa de Conclusão de Vendas (Dias) *</label>
             <input type="number" id="estimativa_vendas" min="1" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: 3">
           </div>
           <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Anexar Arquivo (PDF/Imagem - OPCIONAL)</label>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Anexar Ficha Técnica (PDF/Imagem - Opcional)</label>
             <input type="file" id="arquivo_ficha" accept="application/pdf,image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
           </div>
           <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-gray-600 mb-1">Observação Inicial (Opcional)</label>
-            <textarea id="observacao_inicial" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Modelo 670 com logo cliente e reflet. costurado."></textarea>
+            <textarea id="observacao_inicial" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm" placeholder="Ex: Cuidados na costura do zíper."></textarea>
           </div>
           <div class="md:col-span-2">
             <button type="submit" id="btnSalvarAmostra" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition-all text-sm">
@@ -196,7 +194,7 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 class="text-lg font-bold text-gray-800">📊 Gráfico de Gantt e Rendimento por Setor</h2>
-            <p class="text-xs text-gray-500">Fluxo: Vendas ➔ Modelagem ➔ Compras ➔ Produção ➔ Custos. (Verde = Dentro do Prazo / Vermelho = Excedido).</p>
+            <p class="text-xs text-gray-500">Fluxo: Vendas ➔ Modelagem ➔ Compras ➔ Produção ➔ Custos. (O tempo em fila é contabilizado no rendimento final do setor).</p>
           </div>
 
           <div class="relative w-full md:w-80">
@@ -989,43 +987,54 @@
         const agora = new Date();
 
         const setoresConfig = [
-          { key: 'vendas', nome: 'Vendas', iniciou: amostra.vendas_inicio, fim: amostra.vendas_fim, est: amostra.estimativa_vendas || 0 },
-          { key: 'modelagem', nome: 'Modelagem', iniciou: amostra.modelagem_inicio, fim: amostra.modelagem_fim, est: amostra.estimativa_modelagem || 0 },
-          { key: 'compras', nome: 'Compras', iniciou: amostra.compras_inicio, fim: amostra.compras_fim, est: amostra.estimativa_compras || 0 },
-          { key: 'producao', nome: 'Produção', iniciou: amostra.producao_inicio, fim: amostra.producao_fim, est: amostra.estimativa_producao || 0 },
-          { key: 'custos', nome: 'Custos', iniciou: amostra.custos_inicio, fim: amostra.custos_fim, est: amostra.estimativa_custos || 0 }
+          { key: 'vendas', nome: 'Vendas', chegou: amostra.vendas_inicio || amostra.criado_em, iniciou: amostra.vendas_inicio, fim: amostra.vendas_fim, est: amostra.estimativa_vendas || 0 },
+          { key: 'modelagem', nome: 'Modelagem', chegou: amostra.vendas_fim, iniciou: amostra.modelagem_inicio, fim: amostra.modelagem_fim, est: amostra.estimativa_modelagem || 0 },
+          { key: 'compras', nome: 'Compras', chegou: amostra.modelagem_fim, iniciou: amostra.compras_inicio, fim: amostra.compras_fim, est: amostra.estimativa_compras || 0 },
+          { key: 'producao', nome: 'Produção', chegou: amostra.compras_fim, iniciou: amostra.producao_inicio, fim: amostra.producao_fim, est: amostra.estimativa_producao || 0 },
+          { key: 'custos', nome: 'Custos', chegou: amostra.producao_fim, iniciou: amostra.custos_inicio, fim: amostra.custos_fim, est: amostra.estimativa_custos || 0 }
         ];
 
         let maxDiaMatriz = 1;
         let infoGanttSetores = [];
 
         setoresConfig.forEach(setor => {
-          if (!setor.iniciou) {
+          if (!setor.chegou) {
             infoGanttSetores.push({
               nome: setor.nome,
               ativo: false,
               diaInicio: 0,
               diaFimReal: 0,
               estDias: setor.est,
-              diasReais: 0,
+              diasFila: 0,
+              diasExec: 0,
+              diasTotais: 0,
               rendimento: '-'
             });
           } else {
-            const dtStart = new Date(setor.iniciou);
+            const dtChegou = new Date(setor.chegou);
+            const dtStart = setor.iniciou ? new Date(setor.iniciou) : agora;
             const dtEnd = setor.fim ? new Date(setor.fim) : agora;
 
-            const msDesdeInicioGeral = calcularTempoUtilMs(tCriado, dtStart);
-            const msExecSetor = calcularTempoUtilMs(dtStart, dtEnd);
+            // Tempo útil em MS
+            const msFila = setor.iniciou ? calcularTempoUtilMs(dtChegou, dtStart) : calcularTempoUtilMs(dtChegou, agora);
+            const msExec = setor.iniciou ? calcularTempoUtilMs(dtStart, dtEnd) : 0;
+            const msTotal = msFila + msExec;
 
+            // Conversão para dias
+            const diasFila = Math.ceil(msFila / msPorJornada9h);
+            const diasExec = Math.max(1, Math.ceil(msExec / msPorJornada9h));
+            const diasTotais = Math.max(1, Math.ceil(msTotal / msPorJornada9h));
+
+            const msDesdeInicioGeral = calcularTempoUtilMs(tCriado, dtChegou);
             let colStart = Math.floor(msDesdeInicioGeral / msPorJornada9h) + 1;
-            let diasReaisExec = Math.max(1, Math.ceil(msExecSetor / msPorJornada9h));
-            let colEnd = colStart + diasReaisExec - 1;
+            let colEnd = colStart + diasTotais - 1;
 
             if (colEnd > maxDiaMatriz) maxDiaMatriz = colEnd;
 
+            // Rendimento levando a Fila em consideração
             let rend = '-';
             if (setor.est > 0) {
-              let pct = Math.round((setor.est / diasReaisExec) * 100);
+              let pct = Math.round((setor.est / diasTotais) * 100);
               if (pct > 100) pct = 100;
               rend = `${pct}%`;
             }
@@ -1036,7 +1045,9 @@
               diaInicio: colStart,
               diaFimReal: colEnd,
               estDias: setor.est,
-              diasReais: diasReaisExec,
+              diasFila: diasFila,
+              diasExec: diasExec,
+              diasTotais: diasTotais,
               rendimento: rend
             });
           }
@@ -1077,8 +1088,10 @@
             <tr class="text-xs text-gray-700 hover:bg-gray-50">
               <td class="p-2 font-semibold border-b">${info.nome}</td>
               <td class="p-2 border-b text-gray-600">${dtInic} ➔ ${dtFim}</td>
-              <td class="p-2 border-b text-amber-600 font-medium">${info.estDias ? info.estDias + ' dias' : '-'}</td>
-              <td class="p-2 border-b text-blue-600 font-medium">${info.ativo ? info.diasReais + ' dia(s)' : '-'}</td>
+              <td class="p-2 border-b text-amber-600 font-medium">${info.estDias ? info.estDias + ' dia(s)' : '-'}</td>
+              <td class="p-2 border-b text-orange-600 font-medium">${info.ativo ? info.diasFila + ' dia(s)' : '-'}</td>
+              <td class="p-2 border-b text-blue-600 font-medium">${info.ativo ? info.diasExec + ' dia(s)' : '-'}</td>
+              <td class="p-2 border-b font-bold text-slate-800">${info.ativo ? info.diasTotais + ' dia(s)' : '-'}</td>
               <td class="p-2 border-b font-bold text-emerald-600">${info.rendimento}</td>
             </tr>
           `;
@@ -1115,7 +1128,7 @@
 
             <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2 w-full overflow-hidden">
               <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                ⏱️ Resumo de Rendimento e Estimativas da Amostra
+                ⏱️ Resumo de Performance por Setor
               </h4>
               <div class="overflow-x-auto w-full">
                 <table class="w-full text-left text-xs min-w-[500px]">
@@ -1124,8 +1137,10 @@
                       <th class="p-2">Setor</th>
                       <th class="p-2">Período Real</th>
                       <th class="p-2 text-amber-700">🎯 Estimativa</th>
-                      <th class="p-2 text-blue-700">⚙️ Dias Gastos</th>
-                      <th class="p-2 text-emerald-700">📈 Rendimento</th>
+                      <th class="p-2 text-orange-700">⏳ Tempo em Fila</th>
+                      <th class="p-2 text-blue-700">⚙️ Dias Execução</th>
+                      <th class="p-2 text-slate-800">⏱️ Total no Setor</th>
+                      <th class="p-2 text-emerald-700">📈 Performance</th>
                     </tr>
                   </thead>
                   <tbody>${linhasTabelaTempos}</tbody>
